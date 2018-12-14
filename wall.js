@@ -7,7 +7,7 @@ random.setSeed(random.getRandomSeed());
 
 const settings = {
   suffix: random.getSeed(),
-  dimensions: [ 2048, 2048 ]
+  dimensions: [ 2048, 1024 ]
 };
 
 const sketch = () => {
@@ -29,7 +29,7 @@ const sketch = () => {
   };
 
   const bgColor = '#303030';
-  const margin = 100;
+  const margin = 0;
 
   return ({ context, width, height }) => {
     const lineWidth = Math.round(0.01 * width);

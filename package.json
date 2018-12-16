@@ -11,7 +11,11 @@
   "license": "ISC",
   "dependencies": {
     "canvas-sketch": "^0.1.1",
-    "nice-color-palettes": "^2.0.0"
+    "eases": "^1.0.8",
+    "glsl-hsl2rgb": "^1.1.0",
+    "glsl-noise": "0.0.0",
+    "nice-color-palettes": "^2.0.0",
+    "three": "^0.99.0"
   },
   "devDependencies": {
     "canvas-sketch-util": "^1.6.0"

@@ -7,7 +7,7 @@ random.setSeed(random.getRandomSeed());
 
 const settings = {
   suffix: random.getSeed(),
-  dimensions: [ 2048, 1024 ]
+  dimensions: [ 2048, 2048 ]
 };
 
 const sketch = () => {

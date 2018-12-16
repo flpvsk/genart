@@ -1,12 +1,13 @@
 const canvasSketch = require('canvas-sketch');
 const createShader = require('canvas-sketch-util/shader');
 const glsl = require('glslify');
+const eases = require('eases');
 
 // Setup our sketch
 const settings = {
   context: 'webgl',
   animate: true,
-  duration: 6,
+  duration: 10,
   dimensions: [ 512, 512],
 };
 
@@ -23,8 +24,8 @@ const frag = glsl(`
   #pragma glslify: hsl2rgb = require('glsl-hsl2rgb');
 
   void main () {
-    vec3 colorA = sin(time) * 2.0 + vec3(0.8, 0.0, 0.0);
-    vec3 colorB = sin(time) + vec3(0.0, 0.8, 0.0);
+    // vec3 colorA = time * 2.0 + vec3(0.8, 0.0, 0.0);
+    // vec3 colorB = time + vec3(0.0, 0.8, 0.0);
 
 
     vec2 center = vUv - vec2(0.5, 0.5);
@@ -33,7 +34,7 @@ const frag = glsl(`
 
     float alpha = smoothstep(0.35, 0.345, dist);
 
-    vec3 color = mix(colorA, colorB, vUv.x + vUv.y * sin(time));
+    // vec3 color = mix(colorA, colorB, vUv.x + vUv.y * sin(time));
 
     float n = noise(vec3(vUv.xy * 4.0, time));
 
@@ -60,7 +61,12 @@ const sketch = ({ gl }) => {
     // Specify additional uniforms to pass down to the shaders
     uniforms: {
       // Expose props from canvas-sketch
-      time: ({ playhead, time }) => Math.sin(playhead * Math.PI * 2),
+      time: ({ playhead, time }) => time,
+      // time: ({ playhead }) => (
+      //   Math.sin(2 * Math.PI * playhead) +
+      //   Math.sin(Math.PI / 4 + 2 * Math.PI * playhead) +
+      //   0.2 * Math.sin(3 * Math.PI / 5 + 2 * Math.PI * playhead)
+      // ),
       aspect: ({ width, height }) => width / height,
       colorInp: () => [120, 0, 0].map(v => v / 255)
     }

@@ -3,12 +3,15 @@ const { lerp } = require('canvas-sketch-util/math');
 const random = require('canvas-sketch-util/random');
 const palettes = require('nice-color-palettes');
 
+// random.setSeed(random.getRandomSeed());
+random.setSeed(730948);
+
 const settings = {
-  dimensions: [2048, 2048],
+  dimensions: [5016, 5016 * 9 / 16],
+  suffix: `${random.getSeed()}`,
 };
 
 const sketch = () => {
-  random.setSeed('1');
   const colorCount = random.rangeFloor(1, 6);
   const palette = random.shuffle(
     random.pick(palettes)
@@ -16,17 +19,18 @@ const sketch = () => {
 
   const createGrid = () => {
     const points = [];
-    const count = 50;
-    for (let x = 0; x < count; x++) {
-      for (let y = 0; y < count; y++) {
-        const u = x / (count - 1);
-        const v = y / (count - 1);
-        const size = 0.5 + 0.5 * random.noise2D(u, v, 0.01, 10);
-        const colorIndex = Math.floor(size * palette.length);
+    const countX = Math.floor(100 * 16 / 9);
+    const countY = 100;
+    for (let x = 0; x < countX; x++) {
+      for (let y = 0; y < countY; y++) {
+        const u = x / (countX - 1);
+        const v = y / (countY - 1);
+        const size = 0.5 + 0.5 * random.noise2D(u * 0.02, v * 0.1);
+        const colorIndex = Math.floor(size * palette.length) + 1;
         points.push({
           color: palette[colorIndex],
           position: [ u, v ],
-          size: 0.8 + size,
+          size: 1 * size,
           rotation: Math.PI * 2 * size,
         });
       }
@@ -39,9 +43,9 @@ const sketch = () => {
     .filter(({ position: [u, v] }) => {
       return random.gaussian() > 0.6;
     });
-  const margin = 200;
 
   return ({ context, width, height }) => {
+    const margin = 0; //0.1 * height;
     // context.fillStyle = '#afbdc4';
     // context.fillStyle = '#313131';
     context.fillStyle = palette[0];
@@ -63,10 +67,10 @@ const sketch = () => {
       //   size * height * 0.013
       // );
       context.save();
-      context.font = `${size * width * 0.08}px Arial`;
+      context.font = `${size * height * 0.02}px Arial`;
       context.translate(x, y);
       context.rotate(rotation);
-      const symbol = `|`;
+      const symbol = `s`;
       context.fillText(symbol, 0, 0);
       context.restore();
     });

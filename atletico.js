@@ -19,9 +19,9 @@ const numbers = [
 
 const atleticoPalettes = {
   main: [
-    '#272E61',
-    '#CB3524',
-    '#FFFFFF',
+    [0, 0, 100, 100],
+    // [233, 43, 27, 100], //'#272E61',
+    [6, 70, 47, 100], // '#CB3524',
   ],
   onMain: [
     '#FFFFFF',
@@ -38,14 +38,6 @@ const atleticoPalettes = {
   ],
 };
 
-function withClip({ context, x, y, width, height }, f) {
-  context.save();
-  context.beginPath();
-  context.rect(x, y, width, height);
-  context.clip();
-  f();
-  context.restore();
-}
 
 function createMainGrid() {
   const players = 20;
@@ -88,21 +80,27 @@ const numberPaths = [
   ],
 ];
 
-const createGrid = ({cols, rows, i, }) => {
+const createGrid = ({cols, rows,}) => {
   const points = [];
+  const palette = atleticoPalettes.main;
 
-  for (let c = 0; c < cols; c++) {
-    for (let r = 0; r < rows; r++) {
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
       const u = c / (cols - 1);
       const v = r / (rows - 1);
-      const noise = 0.5 + 0.5 * random.noise3D(0.01 * u, 0.01 * v, i);
+      const noise = 0.5 + 0.5 * random.noise2D(u, 3 * v);
+      const colorIndex = Math.floor(noise * 10) % palette.length;
+      const color = [...palette[colorIndex]];
+      const colorStr =
+        `hsla(${color[0]},${color[1]}%,${color[2]}%,${color[3]}%)`;
       points.push({
         position: [ u, v ],
         sizeX: noise,
-        sizeY: 2 * noise,
+        sizeY: lerp(0.6, 1, noise),
         rotation: noise * random.value(),
-        color: noise,
+        color: colorStr,
         skip: false, //noise > 0.6,
+        symbol: 10 * noise,
       });
     }
   }
@@ -110,115 +108,109 @@ const createGrid = ({cols, rows, i, }) => {
   return points;
 };
 
-function sketchNumber({ i, context, x, y, width, height, number }) {
-  context.save();
-  context.translate(x, y);
-  const palette = atleticoPalettes.main;
-  const mainColorIndex = random.rangeFloor(0, palette.length);
-  const mainColor = palette[mainColorIndex];
-  const otherColors = random.shuffle(
-    palette.filter((c, index) => (index + 1) !== mainColorIndex)
-  );
-  context.fillStyle = mainColor;
-  context.fillRect(
-    0, 0,
-    width,
-    height,
-  );
-  context.restore();
 
-  const aspect = 0.3245033113;
-  const marginX = 0.0 * width;
+
+const sketchNoise = ({ context, width, height, }) => {
+  const palette = atleticoPalettes.main;
+
+  const sizeMult = 0.12;
+  const gridMult = 7;
+  const marginX = 0.18 * width;
   const marginY = 0.0 * height;
 
-  const points = numberPaths[1];
-  const [startU, startV] = points;
-  const startX = marginX + startU * width * aspect;
-  const startY = marginY + startV * height;
-  const numberHeight = height;
-  const numberWidth = numberHeight * aspect;
-  context.save();
-  context.beginPath();
-  context.moveTo(startX * numberWidth, startY * numberHeight);
-  for (let i = 0; i < points.length; i++) {
-    const [u, v] = points[i];
-    const x = marginX + u * numberWidth;
-    const y = v * height;
-    context.lineTo(x, y);
-  }
-  context.lineTo(startU * numberWidth, startV * numberHeight);
-  context.closePath();
-  // context.strokeStyle = 'white';
-  // context.lineWidth = 10;
-  // context.stroke()
-  // context.fillStyle = otherColors[0];
-  // context.fill();
-  // context.clip();
-
-  const gridMult = 30;
   const gridPoints = createGrid({
     cols: gridMult,
     rows: gridMult * height / width,
-    i,
   });
 
-  for (let p of gridPoints) {
+  const cols = 4;
+  const rows = 5;
+  const nums = random.shuffle([...numbers]);
+  const text = 'Aúpa Atleti';
+  const textFontSize = 0.08 * width;
+  const textFont = `${textFontSize}px Futura`;
+
+  context.font = textFont;
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const textMetrics = context.measureText(text);
+  const left = (width - textMetrics.width) / 2
+  const right = centerX + textMetrics.width / 2;
+  const top = (height - textFontSize) / 2 + textFontSize / 2;
+  const bottom = centerY + textFontSize / 2 + textFontSize / 2;
+  const textBlock = {
+    left: Math.floor(left),
+    right: Math.ceil(right),
+    top: Math.floor(top),
+    bottom: Math.ceil(bottom),
+  };
+
+  for (let i = 0; i < gridPoints.length; i++) {
+    const p = gridPoints[i];
+
     if (p.skip) {
       continue;
     }
 
     const [u, v] = p.position;
-    const { sizeX, sizeY, rotation, color, } = p;
-    const pX = lerp(0, numberWidth, u);
-    const pY = lerp(0, numberHeight / 2, v);
-    context.fillStyle = otherColors[(color * 10) % otherColors.length];
-    // context.save();
-    // context.font = `${sizeY * 0.5 * numberHeight}px Arial`;
-    // const symbol = '‹›';
-    // context.translate(x, y);
-    // context.rotate(sizeX * Math.PI);
-    // context.fillText(symbol, 0, 0);
-    // context.restore();
-
+    const { sizeX, sizeY, rotation, color, symbol } = p;
+    const pX = lerp(marginX, width - marginX, u);
+    const pY = lerp(marginY, height - marginY, v);
     context.save();
+
+    const symbols = [ '●', '|', '.',/* '◆' */ ];
     context.translate(pX, pY);
-    context.rotate(rotation * 2 * Math.PI);
-    context.fillRect(
-      pX,
-      pY,
-      0.02 * sizeX * numberWidth,
-      0.025 * sizeY * numberHeight
-    );
+
+    if (
+      pX < textBlock.left - 0.03 * width ||
+      pX > textBlock.right + 0.03 * width ||
+      // pY < textBlock.top - 0.031 * height ||
+      // pY > textBlock.bottom - 0.052 * height ||
+      pY < textBlock.top - 0.081 * height ||
+      pY > textBlock.bottom - 0.002 * height ||
+      random.value() > 0.9
+    ) {
+      context.fillStyle = color;
+      context.font = `${sizeMult * sizeY * width}px Arial`;
+      context.rotate(rotation * Math.PI);
+      context.fillText(
+        symbols[Math.floor(10 * symbol) % symbols.length],
+        0,
+        0
+      );
+    }
+
     context.restore();
-
-
-    // context.beginPath();
-    // context.arc(x, y, sizeX * 0.3 * numberWidth, 0, Math.PI * 2);
-    // context.fill();
   }
-  context.restore();
-}
+
+  const shadowUnit = 0.001 * height;
+  const shadows = [
+    { x: 3, y: 6, opacity: 100 },
+  ];
+
+  for (let shadow of shadows) {
+    // context.fillStyle = `hsla(0,0%,10%,${shadow.opacity}%)`;
+    // 6, 70, 47
+    context.fillStyle = `hsla(6,70%,47%,${shadow.opacity}%)`;
+    context.fillText(
+      text,
+      textBlock.left + shadow.x * shadowUnit,
+      textBlock.top + shadow.y * shadowUnit,
+    );
+  }
+
+  context.fillStyle = 'white';
+  // context.fillStyle = '#272E61';
+  context.font = textFont;
+  context.fillText(text, textBlock.left, textBlock.top);
+
+};
 
 const sketch = () => {
   return ({ context, width, height }) => {
-    context.fillStyle = 'black';
+    context.fillStyle = '#272E61';
     context.fillRect(0, 0, width, height);
-
-
-    const nums = random.shuffle([...numbers]);
-    let i = 0;
-    for (let rect of createMainGrid()) {
-      sketchNumber({
-        i: i++,
-        context,
-        x: rect.x * width,
-        y: rect.y * height,
-        width: rect.width * width,
-        height: rect.height * height,
-        number: nums.pop(),
-      });
-    }
-    // context.restore();
+    sketchNoise({context, width, height });
   };
 };
 

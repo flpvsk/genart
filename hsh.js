@@ -146,8 +146,8 @@ const sketch = async ({ width, height, }) => {
   // ];
 
   const sources = [
-    'shuttlebott',
-    'scuttlebutt',
+    'twitter',
+    'glitter',
   ];
   const leftLegend = 'binary';
   const rightLegend = 'sha-256';

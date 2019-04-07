@@ -3,8 +3,10 @@ const { lerp } = require('canvas-sketch-util/math');
 const random = require('canvas-sketch-util/random');
 const palettes = require('nice-color-palettes');
 
-// random.setSeed(random.getRandomSeed());
-random.setSeed(730948);
+const seed = random.getRandomSeed();
+console.log('seed', seed);
+random.setSeed(seed);
+// random.setSeed(730948);
 
 const settings = {
   dimensions: [5016, 5016 * 9 / 16],
@@ -13,9 +15,13 @@ const settings = {
 
 const sketch = () => {
   const colorCount = random.rangeFloor(1, 6);
-  const palette = random.shuffle(
-    random.pick(palettes)
-  ).slice(1, colorCount);
+  //const palette = random.shuffle(
+  //  random.pick(palettes)
+  //).slice(1, colorCount);
+  const palette = [
+    '#f6e436',
+    '#050505',
+  ];
 
   const createGrid = () => {
     const points = [];
@@ -31,8 +37,7 @@ const sketch = () => {
           color: palette[colorIndex],
           position: [ u, v ],
           size: 1 * size,
-          rotation: Math.PI * 2 * size,
-        });
+          rotation: Math.PI * 2 * size, });
       }
     }
 

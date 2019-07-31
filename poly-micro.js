@@ -14,7 +14,7 @@ const settings = {
   duration: 2,
   context: '2d',
   fps: 24,
-  dimensions: [600, 600],
+  dimensions: [412, 412],
   attributes: { antialias: true }
 };
 
@@ -135,12 +135,21 @@ const delimWidth = 12;
 
 
 const sketch = () => {
-  const palette = random.shuffle(random.pick(palettes));
-  const progressColor = palette.slice(-1)[0];
-  const circlePalette = palette.slice(1).map(hexToHsl);
+  // const palette = random.shuffle(random.pick(palettes));
+  const palette = [
+    [0, 0, 12],
+    [217, 48, 39 + 16],
+    [5, 96, 61],
+    [217, 48, 39],
+    [47, 81, 56],
+  ];
+  // const progressColor = palette.slice(-1)[0];
+  // const circlePalette = palette.slice(1).map(hexToHsl);
+  const progressColor = [0, 0, 80];
+  const circlePalette = palette.slice(1);
 
   return ({ context, width, height, time, playhead }) => {
-    context.fillStyle = palette[0];
+    context.fillStyle = hslToStr(palette[0]);
     context.fillRect(0, 0, width, height);
 
     const centerX = Math.round(width * 0.5);
@@ -149,8 +158,8 @@ const sketch = () => {
     drawWideArc(context, {
       centerX,
       centerY,
-      innerRadius: 0.44 * width,
-      outerRadius: 0.45 * width,
+      innerRadius: 0.490 * width,
+      outerRadius: 0.495 * width,
       startAngle: 0 - Math.PI / 2,
       endAngle: 2 * Math.PI - Math.PI / 2,
       color: 'hsla(0, 0%, 0%, 8%)'
@@ -159,22 +168,22 @@ const sketch = () => {
     drawWideArc(context, {
       centerX,
       centerY,
-      innerRadius: 0.44 * width,
-      outerRadius: 0.45 * width,
+      innerRadius: 0.490 * width,
+      outerRadius: 0.495 * width,
       startAngle: 0 - Math.PI / 2,
       endAngle: 2 * Math.PI * playhead - Math.PI / 2,
-      color: progressColor,
+      color: hslToStr(progressColor, 1),
     });
 
 
     for (let i = 0; i < circles.length; i++) {
       const circle = circles[i];
       const baseRadius = (
-        width * i * 0.07 + i * 8 + width * 0.1
+        width * i * 0.07 + i * 4 + width * 0.14
       );
 
-      const innerRadius = baseRadius - width * 0.028;
-      const outerRadius = baseRadius + width * 0.028;
+      const innerRadius = Math.floor(baseRadius - width * 0.028);
+      const outerRadius = Math.ceil(baseRadius + width * 0.028);
 
       drawWideArc(context, {
         centerX,
@@ -183,7 +192,7 @@ const sketch = () => {
         outerRadius,
         startAngle: 0,
         endAngle: 2 * Math.PI,
-        color: 'hsla(0, 0%, 0%, 24%)'
+        color: 'hsl(0, 0%, 18%)'
       });
 
       for (let j = 0; j < circle.length - 1; j++) {
@@ -214,7 +223,7 @@ const sketch = () => {
           outerRadius,
           angle: arcStart - Math.PI / 2,
           width: delimWidth,
-          color: palette[0],
+          color: hslToStr(palette[0], 1),
         });
 
         drawDelimiter(context, {
@@ -224,7 +233,7 @@ const sketch = () => {
           outerRadius,
           angle: arcEnd - Math.PI / 2,
           width: delimWidth,
-          color: palette[0],
+          color: hslToStr(palette[0], 1),
         });
       }
     }

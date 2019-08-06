@@ -184,14 +184,11 @@ const sketch = ({ gl }) => {
     precision mediump float;
     uniform mat4 projection, view, model;
     attribute vec3 position;
-    attribute vec4 aColor;
 
     varying vec3 vPos;
-    varying vec4 vColor;
 
     void main() {
       vPos = position;
-      vColor = aColor;
       gl_Position = projection * view * model * vec4(position, 1);
       // gl_Position = model * vec4(position, 1);
       // gl_Position = vec4(position, 1);
@@ -203,11 +200,9 @@ const sketch = ({ gl }) => {
     uniform vec4 mainColor;
 
     varying vec3 vPos;
-    varying vec4 vColor;
 
     void main() {
-      gl_FragColor = vColor;
-      // gl_FragColor = mainColor;
+      gl_FragColor = mainColor;
       // gl_FragColor = vec4(vPos, 1.0);
     }
     `),
@@ -215,14 +210,6 @@ const sketch = ({ gl }) => {
       position: (context, { radiusRatio, nVerticies }) => {
         return donutVerticies3d(nVerticies, radiusRatio);
       },
-      aColor: (context, { nVerticies }) => {
-        const arr = [];
-        for (let i = 0; i < 2 * nVerticies; i += 1) {
-          arr.push([1, 0, 0, 1]);
-          arr.push([0, 1, 0, 1]);
-        }
-        return arr;
-      }
     },
     elements: (context, { nVerticies }) => donutElements3d(nVerticies),
     blend: {
@@ -304,14 +291,14 @@ const sketch = ({ gl }) => {
       drawShape({
         mainColor,
         bgColor,
-        nVerticies: 3,
-        radiusRatio: 0.4,
+        nVerticies: 4,
+        radiusRatio: 0.5,
         scale: [1, 1, 1],
-        // rotate: [ 0, 0, 0 ],
-        rotate: [ 100 * t, 0, 0 ],
+        rotate: [ 3 * t * Math.PI * 2 + Math.PI / 2, 0, 0],
         translate: [ 0, 0, 0.6],
         time: t,
       });
+
     },
     unload () {
       // Unload sketch for hot reloading

@@ -15,8 +15,6 @@ const settings = {
   context: 'webgl',
   // Turn on MSAA
   attributes: { antialias: true },
-  dimensions: [ 3 * 1024, 1024 ],
-  duration: 60,
 };
 
 function* repeat(times, values) {
@@ -199,7 +197,7 @@ const sketch = ({ gl }) => {
 
   // Return the renderer function
   return {
-    render (context) {
+    render(context) {
       const t = context.time;
       // Update regl sizes
       regl.poll();

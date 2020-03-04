@@ -4,9 +4,10 @@ const mat4 = require('gl-mat4');
 const createRegl = require('regl');
 const glsl = require('glslify');
 
-const seed = random.getRandomSeed();
+// const seed = random.getRandomSeed();
 // const seed = 631559;
 // const seed = 57126;
+const seed = '239118';
 random.setSeed(seed);
 console.log('seed', seed);
 // 964465
@@ -18,8 +19,8 @@ const settings = {
   context: 'webgl',
   // Turn on MSAA
   attributes: { antialias: true },
-  dimensions: [ 1024, 1024 ],
-  duration: 60,
+  dimensions: [ 1280, 720 ],
+  duration: 1000,
 };
 
 function* repeat(times, values) {
@@ -38,7 +39,8 @@ function* repeat(times, values) {
 
 const bmYellowColor = [ 0.922, 0.702, 0.043, 1];
 const bmPinkColor = [ 0.5085, 0.2436, 0.2479,];
-const bgColor = [ 0.086, 0.086, 0.086, 1 ];
+// const bgColor = [ 0.086, 0.086, 0.086, 1 ];
+const bgColor = [ 0, 0, 0, 1];
 const mainColor = bmYellowColor;
 
 const piramidsCount = random.rangeFloor(10, 20);
@@ -115,9 +117,6 @@ const sketch = ({ gl }) => {
     frag: glsl(`
     precision mediump float;
 
-    #pragma glslify: noise3 = require('glsl-noise/simplex/3d');
-    #pragma glslify: noise4 = require('glsl-noise/simplex/4d');
-
     uniform vec4 mainColor;
     uniform vec4 bgColor;
     uniform float time;
@@ -126,12 +125,6 @@ const sketch = ({ gl }) => {
     varying vec3 vPos;
 
     void main() {
-      vec4 discoColor = mix(
-        mainColor,
-        bgColor,
-        noise3(vec3(vPos.x, vPos.y, vPos.z) * 5.0 * tan(time * 0.6)) + 1.0
-      );
-
       if (any(lessThan(vBC, vec3(0.004)))) {
         gl_FragColor = mainColor;
       } else {
@@ -207,13 +200,72 @@ const sketch = ({ gl }) => {
     },
   });
 
+  function drawPiramid({
+    bgColor,
+    mainColor,
+    time,
+    scale,
+    min,
+    max,
+  }) {
+    drawTriangle({
+      mainColor,
+      bgColor,
+      time,
+      scale,
+      vertices: [
+        [ min, max, min, ],
+        [ min, min, min, ],
+        [ min, max, max, ],
+      ],
+    });
+
+    drawTriangle({
+      mainColor,
+      bgColor,
+      time,
+      scale,
+      vertices: [
+        [ min, max, min, ],
+        [ min, min, min, ],
+        [ max, max, min, ],
+      ],
+    });
+
+    drawTriangle({
+      mainColor,
+      bgColor,
+      time,
+      scale,
+      vertices: [
+        [ max, max, min, ],
+        [ min, min, min, ],
+        [ min, max, max, ],
+      ],
+    });
+
+    drawTriangle({
+      mainColor,
+      bgColor,
+      time,
+      scale,
+      vertices: [
+        [ min, max, max, ],
+        [ min, max, min, ],
+        [ max, max, min, ],
+      ],
+    });
+  }
+
+
   // Regl GL draw commands
   // ...
 
   // Return the renderer function
   return {
     render (context) {
-      const t = 10.0 * context.playhead;
+      const p = context.playhead;
+      let t = (p + Math.abs(Math.sin(100 * p)) * p) * 26.0;
       // Update regl sizes
       regl.poll();
 
@@ -225,62 +277,6 @@ const sketch = ({ gl }) => {
       // Draw meshes to scene
       // drawTriangle({ color: bgColor, scale: 1.2, });
 
-      function drawPiramid({
-        bgColor,
-        mainColor,
-        time,
-        scale,
-        min,
-        max,
-      }) {
-        drawTriangle({
-          mainColor,
-          bgColor,
-          time,
-          scale,
-          vertices: [
-            [ min, max, min, ],
-            [ min, min, min, ],
-            [ min, max, max, ],
-          ],
-        });
-
-        drawTriangle({
-          mainColor,
-          bgColor,
-          time,
-          scale,
-          vertices: [
-            [ min, max, min, ],
-            [ min, min, min, ],
-            [ max, max, min, ],
-          ],
-        });
-
-        drawTriangle({
-          mainColor,
-          bgColor,
-          time,
-          scale,
-          vertices: [
-            [ max, max, min, ],
-            [ min, min, min, ],
-            [ min, max, max, ],
-          ],
-        });
-
-        drawTriangle({
-          mainColor,
-          bgColor,
-          time,
-          scale,
-          vertices: [
-            [ min, max, max, ],
-            [ min, max, min, ],
-            [ max, max, min, ],
-          ],
-        });
-      }
 
       for (let piramid of piramids) {
         drawPiramid({

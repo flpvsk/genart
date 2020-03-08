@@ -28,57 +28,65 @@ function createPoints(n) {
   return points;
 }
 
-const sketch = () => {
+function makeScene(duration, draw) {
+  return {
+    duration,
+    draw,
+  };
+}
+
+function appendToSequence(scene, seq) {
+  if (!seq) {
+    seq = [];
+  }
+
+  return seq.concat([scene]);
+}
+
+function runSequence(seq, playhead) {
+  const duration = seq.reduce((acc, scene) => acc + scene.duration, 0);
+
+  if (!duration) {
+    return;
+  }
+
+  const partSize = 1 / duration;
+  const currentPart = playhead / partSize;
+  const currentPartNumber = Math.floor(currentPart);
+  const currentPartProgress = currentPart - currentPartNumber;
+
+  let durationAcc = 0;
+  for (let scene of seq) {
+    durationAcc += scene.duration;
+    if (durationAcc >= currentPart) {
+      scene.draw(
+        (currentPart - durationAcc + scene.duration) / scene.duration
+      );
+      return;
+    }
+  }
+}
+
+const sketch = ({ width, height, context }) => {
+  const c = context;
   const playheadFraction = 0.05;
   const points = createPoints(1 / playheadFraction);
-  return ({ context, width, height, playhead }) => {
-    const c = context;
-    c.fillStyle = 'white';
-    c.fillRect(0, 0, width, height);
+  const radius = width * 0.004;
 
-    const radius = width * 0.004;
+  function toX(u) {
+    return ;
+  }
+  function toY(v) {
+    return lerp(0, height, v);
+  }
 
-    function toX(u) {
-      return lerp(32, width - 32, u);
-    }
-    function toY(v) {
-      return lerp(0, height, v);
-    }
-
-    const stage = Math.round(
-      3 * playhead /
-      playheadFraction
-    );
-
-    const pointsCount = Math.min(
-      stage,
-      points.length
-    );
-
-    if (stage > points.length) {
-      c.beginPath();
-      for (let i = 0; i < stage - points.length; i++) {
-        if (i >= points.length) {
-          break;
-        }
-
-        const point = points[i];
-        if (i === 0) {
-          c.moveTo(toX(point[0]), toY(point[1]));
-          continue;
-        }
-
-        c.lineTo(toX(point[0]), toY(point[1]));
-      }
-      c.stroke();
-    }
-
-    for (let i = 0; i < pointsCount; i++) {
+  function drawDots(c, pos, minX, maxX, minY, maxY) {
+    for (let i = 0; i < pos * points.length; i++) {
       const point = points[i];
       c.beginPath();
       c.arc(
-        toX(point[0]),
-        toY(point[1]),
+        lerp(minX, maxX, point[0]),
+        lerp(minY, maxY, point[1]),
         radius,
         0, Math.PI * 2
       );
@@ -87,7 +95,55 @@ const sketch = () => {
       c.fillStyle = 'white';
       c.fill();
     }
+  }
 
+  function drawLines(c, pos, minX, maxX, minY, maxY) {
+    c.beginPath();
+    for (let i = 0; i < pos * points.length; i++) {
+      const point = points[i];
+      const x = lerp(minX, maxX, point[0]);
+      const y = lerp(minY, maxY, point[1]);
+      if (i === 0) {
+        c.moveTo(x, y);
+        continue;
+      }
+
+      c.lineTo(x, y);
+    }
+    c.stroke();
+
+    drawDots(c, 1, minX, maxX, minY, maxY);
+  }
+
+  return ({ context, width, height, playhead }) => {
+    c.fillStyle = 'white';
+    c.fillRect(0, 0, width, height);
+
+
+
+    const drawDotsScene = makeScene(
+      points.length,
+      pos => {
+        drawDots(c, pos, 32, width - 32, 32, height - 32);
+      }
+    );
+    const drawLinesScene = makeScene(
+      points.length,
+      pos => {
+        drawLines(c, pos, 32, width - 32, 32, height - 32);
+      }
+    );
+    const showLinesScene = makeScene(
+      points.length,
+      () => {
+        drawLines(c, 1, 32, width - 32, 32, height - 32);
+      }
+    );
+    let seq = appendToSequence(drawDotsScene);
+    seq = appendToSequence(drawLinesScene, seq);
+    seq = appendToSequence(showLinesScene, seq);
+
+    runSequence(seq, playhead);
   };
 };
 

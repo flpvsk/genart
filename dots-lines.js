@@ -124,19 +124,22 @@ const sketch = ({ width, height, context }) => {
     const drawDotsScene = makeScene(
       points.length,
       pos => {
-        drawDots(c, pos, 32, width - 32, 32, height - 32);
+        drawDots(c, pos, 32, width - 32, 0.1 * height, 0.4 * height);
+        drawDots(c, pos, 32, width - 32, 0.5 * height, 1.0 * height);
       }
     );
     const drawLinesScene = makeScene(
       points.length,
       pos => {
-        drawLines(c, pos, 32, width - 32, 32, height - 32);
+        drawLines(c, pos, 32, width - 32, 0.1 * height, 0.4 * height);
+        drawLines(c, pos, 32, width - 32, 0.5 * height, 1.0 * height);
       }
     );
     const showLinesScene = makeScene(
       points.length,
       () => {
-        drawLines(c, 1, 32, width - 32, 32, height - 32);
+        drawLines(c, 1.0, 32, width - 32, 0.1 * height, 0.4 * height);
+        drawLines(c, 1.0, 32, width - 32, 0.5 * height, 1.0 * height);
       }
     );
     let seq = appendToSequence(drawDotsScene);

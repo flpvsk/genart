@@ -4,7 +4,8 @@ import { lerp, wrap, clamp } from 'canvas-sketch-util/math';
 import random from 'canvas-sketch-util/random';
 
 const settings = {
-  dimensions: [ 2048, 2048 ],
+  // dimensions: [ 2048, 2048 ],
+  dimensions: [ 608, 1080, ],
   animate: true,
   duration: 15,
 };
@@ -197,7 +198,7 @@ const sketch = ({ width, height }) => {
     const line2 = 'twenty eight';
     const line3 = 'berlin';
 
-    const textHeight = 0.14 * height;;
+    const textHeight = 0.14 * width;;
 
     c.font = `${textHeight}px Coolvetica`;
     c.fillStyle = 'rgb(234, 169, 235)';
@@ -214,13 +215,13 @@ const sketch = ({ width, height }) => {
     c.fillText(
       line1,
       (width - textSize1.width) / 2,
-      (height) / 2 - textHeight * 1.00
+      (height) / 2 - textHeight * 4.50
     );
 
     c.fillText(
       line2,
       (width - textSize2.width) / 2,
-      (height) / 2 - textHeight * 0.2
+      (height) / 2 - textHeight * 3.7
     );
 
     c.shadowOffsetX = 0;
@@ -235,7 +236,7 @@ const sketch = ({ width, height }) => {
     c.strokeText(
       line3,
       (width - textSize3.width) / 2,
-      (height) / 2 + textHeight * 2.4
+      (height) / 2 + textHeight * 4.4
     );
     c.restore();
 
@@ -244,7 +245,7 @@ const sketch = ({ width, height }) => {
     c.fillText(
       line3,
       (width - textSize3.width) / 2,
-      (height) / 2 + textHeight * 2.4
+      (height) / 2 + textHeight * 4.4
     );
   };
 };

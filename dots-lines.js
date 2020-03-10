@@ -1,4 +1,5 @@
 import getImageData from './getImageData';
+import haltonSeq from './haltonSequence';
 const canvasSketch = require('canvas-sketch');
 const memoize = require('lodash/memoize');
 const { lerp, wrap, clamp } = require('canvas-sketch-util/math');
@@ -68,19 +69,6 @@ function runSequence(seq, playhead) {
       return;
     }
   }
-}
-
-function haltonSeq(index = 0, base) {
-  let f = 1;
-  let r = 0;
-
-  while (index > 0) {
-    f = f / base;
-    r = r + f * (index % base);
-    index = Math.floor(index / base);
-  }
-
-  return r;
 }
 
 const sketch = async ({ width, height, context }) => {

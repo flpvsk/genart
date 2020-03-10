@@ -4,7 +4,9 @@ import { lerp, wrap, clamp } from 'canvas-sketch-util/math';
 import random from 'canvas-sketch-util/random';
 
 const settings = {
-  dimensions: [ 2048, 2048 ]
+  dimensions: [ 2048, 2048 ],
+  animate: true,
+  duration: 15,
 };
 
 let seed = random.getRandomSeed();
@@ -32,7 +34,7 @@ const sketch = ({ width, height }) => {
     c.clip();
   }
 
-  function drawBlock1(c, minX, maxX, minY, maxY) {
+  function drawBlock1(c, playhead, minX, maxX, minY, maxY) {
     c.save();
     drawBlockBorder(c, minX, maxX, minY, maxY);
 
@@ -40,14 +42,14 @@ const sketch = ({ width, height }) => {
     c.strokeStyle = 'none';
     c.fillStyle = 'grey';
 
-    for (let i = 0; i < 300; i++) {
+    for (let i = 0; i < 800; i++) {
       let u = haltonSeq(i, 2);
       let v = haltonSeq(i, 3);
 
       const x = lerp(minX, maxX, u);
       const y = lerp(minY, maxY, v);
 
-      if (random.value() > 0.8) {
+      if (random.noise3D(u, v, playhead, 8) > 0.3) {
         continue;
       }
 
@@ -59,8 +61,8 @@ const sketch = ({ width, height }) => {
     c.restore();
   }
 
-  const letters = [ 'b', 'd', 'f', 'h', 'j', 'l', ];
-  function drawBlock2(c, minX, maxX, minY, maxY) {
+  const letters = random.shuffle([ 'b', 'd', 'f', 'h', 'j', 'l', ]);
+  function drawBlock2(c, playhead, minX, maxX, minY, maxY) {
     c.save();
     drawBlockBorder(c, minX, maxX, minY, maxY);
 
@@ -71,14 +73,14 @@ const sketch = ({ width, height }) => {
       const x = lerp(minX, maxX, u);
       const y = lerp(minY, maxY, v);
 
-      const size = Math.floor((maxY - minY) * 0.20);
+      const size = Math.floor((maxY - minY) * 0.23);
       c.font = `${size}px "Childish Reverie Doodles"`;
       c.fillStyle = 'grey';
       c.strokeStyle = 'grey';
 
-      const p1 = random.value();
-      const p2 = random.gaussian(0, 0.5);
-      const l = random.pick(letters);
+      const p1 = random.noise3D(u, v, playhead, 100);
+      const p2 = random.noise3D(u, v, playhead);
+      const l = letters[wrap(i, 0, letters.length)];
 
       c.save();
       c.translate(x, y);
@@ -107,21 +109,21 @@ const sketch = ({ width, height }) => {
     c.restore();
   }
 
-  function drawBlock3(c, minX, maxX, minY, maxY) {
+  function drawBlock3(c, playhead, minX, maxX, minY, maxY) {
     c.save();
     drawBlockBorder(c, minX, maxX, minY, maxY);
     const lerpX = x => lerp(minX, maxX, x);
     const lerpY = y => lerp(minY, maxY, y);
 
-    const offset = random.value();
-    const linesCount = 8;
+    const offsetY = -playhead;
+    const linesCount = 80;
     const pointsCount = 40;
     for (let j = 0; j <= linesCount; j++) {
       c.beginPath();
-      const lineMinY = lerpY((j - 1) / (linesCount));
-      const lineMaxY = lerpY((j + 1) / (linesCount));
-      const lineMinX = lerpX(0 - offset);
-      const lineMaxX = lerpX(2 - offset);
+      const lineMinY = lerpY(10 * (j - 1) / (linesCount) + offsetY);
+      const lineMaxY = lerpY(10 * (j + 1) / (linesCount) + offsetY);
+      const lineMinX = lerpX(0);
+      const lineMaxX = lerpX(1);
 
       const lineLerpY = y => lerp(lineMinY, lineMaxY, y);
       const lineLerpX = x => lerp(lineMinX, lineMaxX, x);
@@ -149,7 +151,11 @@ const sketch = ({ width, height }) => {
     c.restore();
   }
 
-  return ({ context, width, height }) => {
+  function dividePlayhead(playhead, n) {
+    return Math.floor(playhead * n) / n;
+  }
+
+  return ({ context, width, height, playhead, }) => {
     const c = context;
     c.fillStyle = 'white';
     c.fillRect(0, 0, width, height);
@@ -164,10 +170,16 @@ const sketch = ({ width, height }) => {
       height - (blocks - 1) * gutterY - 2 * marginY
     ) / blocks;
 
-    drawBlock1(c, minX, maxX, minY, minY + blockHeight);
+    drawBlock1(
+      c,
+      dividePlayhead(playhead, 3),
+      minX, maxX,
+      minY, minY + blockHeight
+    );
 
     drawBlock2(
       c,
+      dividePlayhead(playhead, 14),
       minX, maxX,
       minY + 1 * blockHeight + gutterY,
       minY + 2 * blockHeight + gutterY,
@@ -175,6 +187,7 @@ const sketch = ({ width, height }) => {
 
     drawBlock3(
       c,
+      playhead * 2,
       minX, maxX,
       minY + 2 * blockHeight + 2 * gutterY,
       height - marginY

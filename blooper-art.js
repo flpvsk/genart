@@ -6,8 +6,8 @@ import load from 'load-asset';
 
 const settings = {
   // dimensions: [ 2048, 2048 ],
-  // dimensions: [ 608, 1080, ],
-  dimensions: [ 1200, 628 ],
+  dimensions: [ 608, 1080, ],
+  // dimensions: [ 1200, 628 ],
   animate: true,
   duration: 15,
 };
@@ -207,7 +207,8 @@ const sketch = async ({ width, height }) => {
     const line2 = 'blooper party';
     const line3 = 'paolo pinkel';
 
-    const textHeight = 0.14 * height;;
+    // const textHeight = 0.14 * Math.min(width, height);
+    const textHeight = 0.10 * Math.min(width, height);
 
     c.font = `${textHeight}px Coolvetica`;
     c.fillStyle = PINK;
@@ -218,13 +219,14 @@ const sketch = async ({ width, height }) => {
 
     const textSize1 = c.measureText(line1);
 
-    const line1Y = minY + blockHeight / 2 + textHeight * 0.3;
-    const line2Y = minY + 3 * blockHeight / 2 + gutterY + textHeight * 0.3;
+    const line1Y = minY + 2 * marginY;
+    const line2Y = line1Y + 2.5 * marginY;
+    const line3Y = line2Y + 4 * marginY;
     const lineX = 1.5 * marginX;
 
     c.fillText(
       line1,
-      lineX,
+      minX + (maxX - minX - textSize1.width) / 2,
       line1Y
     );
 
@@ -238,7 +240,7 @@ const sketch = async ({ width, height }) => {
 
     c.fillText(
       line2,
-      lineX,
+      minX + (maxX - minX - textSize2.width) / 2,
       line2Y
     );
 
@@ -256,16 +258,16 @@ const sketch = async ({ width, height }) => {
     c.lineWidth = textHeight * 0.1;
     c.strokeText(
       line3,
-      lineX,
-      (height) / 2 + textHeight * 2.4
+      minX + (maxX - minX - textSize3.width) / 2,
+      line3Y
     );
     c.restore();
 
     c.fillStyle = BLUE;
     c.fillText(
       line3,
-      lineX,
-      (height) / 2 + textHeight * 2.4
+      minX + (maxX - minX - textSize3.width) / 2,
+      line3Y
     );
 
     const sourceX = 0;
@@ -276,23 +278,23 @@ const sketch = async ({ width, height }) => {
     // const newWidth = width / 4;
     // const newHeight = newWidth / aspect;
 
-    const newHeight = height - 4 * marginY;
+    const newHeight = 0.4 * height;
     const newWidth = aspect * newHeight;
 
-    const imgX = maxX - marginX - newWidth;
-    const imgY = 2 * marginY;
+    const imgX = (maxX - newWidth) / 2 + marginX;
+    const imgY = height - 1 * newHeight - 4 * marginY;
 
 
     c.beginPath();
     c.rect(
-      imgX - 0.5 * marginX,
-      imgY - 0.5 * marginY,
-      newWidth + 2 * 0.5 * marginX,
-      newHeight + 2 * 0.5 * marginY,
+      imgX - 1.0 * marginX,
+      imgY - 1.0 * marginY,
+      newWidth + 2 * 1.0 * marginX,
+      newHeight + 2 * 1.0 * marginY,
     );
     c.closePath();
 
-    c.lineWidth = 0.5 * marginX;
+    c.lineWidth = 0.7 * marginX;
     c.fillStyle = YELLOW;
     c.strokeStyle = GREEN;
 

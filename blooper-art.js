@@ -2,10 +2,12 @@ import haltonSeq from './haltonSequence';
 import canvasSketch from 'canvas-sketch';
 import { lerp, wrap, clamp } from 'canvas-sketch-util/math';
 import random from 'canvas-sketch-util/random';
+import load from 'load-asset';
 
 const settings = {
   // dimensions: [ 2048, 2048 ],
-  dimensions: [ 608, 1080, ],
+  // dimensions: [ 608, 1080, ],
+  dimensions: [ 1200, 628 ],
   animate: true,
   duration: 15,
 };
@@ -14,7 +16,12 @@ let seed = random.getRandomSeed();
 console.log('seed', seed);
 random.setSeed(seed);
 
-const sketch = ({ width, height }) => {
+const YELLOW = 'rgb(251, 253, 179)';
+const PINK = 'rgb(234, 169, 235)';
+const BLUE = 'rgb(122, 195, 219)';
+const GREEN = `rgb(187, 254, 181)`;
+
+const sketch = async ({ width, height }) => {
   const blocks = 3;
   const marginX = 3 * 0.0156 * width;
   const marginY = marginX;
@@ -23,6 +30,8 @@ const sketch = ({ width, height }) => {
   const maxX = width - marginX;
   const minY = marginY;
   const maxY = height - marginY;
+
+  const blooperImg = await load('assets/blooper.png');
 
   function drawBlockBorder(c, minX, maxX, minY, maxY) {
     c.fillStyle = 'none';
@@ -43,7 +52,7 @@ const sketch = ({ width, height }) => {
     c.strokeStyle = 'none';
     c.fillStyle = 'grey';
 
-    for (let i = 0; i < 800; i++) {
+    for (let i = 0; i < 1000; i++) {
       let u = haltonSeq(i, 2);
       let v = haltonSeq(i, 3);
 
@@ -55,7 +64,7 @@ const sketch = ({ width, height }) => {
       }
 
       c.beginPath();
-      c.arc(x, y, 0.003 * (maxX - minX), 0, Math.PI * 2);
+      c.arc(x, y, 0.001 * (maxX - minX), 0, Math.PI * 2);
       c.closePath();
       c.fill();
     }
@@ -164,7 +173,7 @@ const sketch = ({ width, height }) => {
     c.beginPath();
     c.rect(0, 0, width, height);
     c.lineWidth = marginX;
-    c.strokeStyle = 'rgb(122, 195, 219)';
+    c.strokeStyle = BLUE;
     c.stroke();
 
     const blockHeight = (
@@ -194,39 +203,51 @@ const sketch = ({ width, height }) => {
       height - marginY
     );
 
-    const line1 = 'march';
-    const line2 = 'twenty eight';
-    const line3 = 'berlin';
+    const line1 = '28.03 12pm-5pm';
+    const line2 = 'blooper party';
+    const line3 = 'paolo pinkel';
 
-    const textHeight = 0.14 * width;;
+    const textHeight = 0.14 * height;;
 
     c.font = `${textHeight}px Coolvetica`;
-    c.fillStyle = 'rgb(234, 169, 235)';
-    // c.shadowColor = 'rgb(251, 253, 179)';
-    c.shadowColor = `rgb(187, 254, 181)`;
+    c.fillStyle = PINK;
+    c.shadowColor = GREEN;
     c.shadowBlur = 0;
     c.shadowOffsetX = 0.005 * width;
     c.shadowOffsetY = 0.005 * height;
 
     const textSize1 = c.measureText(line1);
-    const textSize2 = c.measureText(line2);
-    const textSize3 = c.measureText(line3);
+
+    const line1Y = minY + blockHeight / 2 + textHeight * 0.3;
+    const line2Y = minY + 3 * blockHeight / 2 + gutterY + textHeight * 0.3;
+    const lineX = 1.5 * marginX;
 
     c.fillText(
       line1,
-      (width - textSize1.width) / 2,
-      (height) / 2 - textHeight * 4.50
+      lineX,
+      line1Y
     );
+
+    c.font = `${textHeight * 1.2}px Coolvetica`;
+    const textSize2 = c.measureText(line2);
+    c.fillStyle = PINK;
+    c.shadowColor = GREEN;
+    c.shadowBlur = 0;
+    c.shadowOffsetX = 0.005 * width;
+    c.shadowOffsetY = 0.005 * height;
 
     c.fillText(
       line2,
-      (width - textSize2.width) / 2,
-      (height) / 2 - textHeight * 3.7
+      lineX,
+      line2Y
     );
 
+    c.font = `${textHeight}px Coolvetica`;
     c.shadowOffsetX = 0;
     c.shadowOffsetY = 0;
     c.shadowColor = 'none';
+
+    const textSize3 = c.measureText(line3);
 
     c.save();
     c.lineJoin = 'round';
@@ -235,17 +256,56 @@ const sketch = ({ width, height }) => {
     c.lineWidth = textHeight * 0.1;
     c.strokeText(
       line3,
-      (width - textSize3.width) / 2,
-      (height) / 2 + textHeight * 4.4
+      lineX,
+      (height) / 2 + textHeight * 2.4
     );
     c.restore();
 
-    c.fillStyle = 'rgb(122, 195, 219)';
-    // c.shadowColor = 'rgb(251, 253, 179)';
+    c.fillStyle = BLUE;
     c.fillText(
       line3,
-      (width - textSize3.width) / 2,
-      (height) / 2 + textHeight * 4.4
+      lineX,
+      (height) / 2 + textHeight * 2.4
+    );
+
+    const sourceX = 0;
+    const sourceY = lerp(0, blooperImg.height, 1.0);
+    const sizeX = blooperImg.width;
+    const sizeY = blooperImg.height;
+    const aspect = sizeX / sizeY;
+    // const newWidth = width / 4;
+    // const newHeight = newWidth / aspect;
+
+    const newHeight = height - 4 * marginY;
+    const newWidth = aspect * newHeight;
+
+    const imgX = maxX - marginX - newWidth;
+    const imgY = 2 * marginY;
+
+
+    c.beginPath();
+    c.rect(
+      imgX - 0.5 * marginX,
+      imgY - 0.5 * marginY,
+      newWidth + 2 * 0.5 * marginX,
+      newHeight + 2 * 0.5 * marginY,
+    );
+    c.closePath();
+
+    c.lineWidth = 0.5 * marginX;
+    c.fillStyle = YELLOW;
+    c.strokeStyle = GREEN;
+
+    c.stroke();
+    c.fill();
+
+    // draw image
+    c.drawImage(
+      blooperImg,
+      imgX,
+      imgY,
+      newWidth,
+      newHeight,
     );
   };
 };

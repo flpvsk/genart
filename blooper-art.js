@@ -5,9 +5,9 @@ import random from 'canvas-sketch-util/random';
 import load from 'load-asset';
 
 const settings = {
-  // dimensions: [ 2048, 2048 ],
+  dimensions: [ 2048, 2048 ],
   // dimensions: [ 608, 1080, ],
-  dimensions: [ 1200, 628 ],
+  // dimensions: [ 1200, 628 ],
   animate: true,
   duration: 15,
 };
@@ -207,7 +207,7 @@ const sketch = async ({ width, height }) => {
     const line2 = 'blooper party';
     const line3 = 'paolo pinkel';
 
-    const textHeight = 0.14 * height;;
+    const textHeight = 0.07 * width;;
 
     c.font = `${textHeight}px Coolvetica`;
     c.fillStyle = PINK;
@@ -218,8 +218,9 @@ const sketch = async ({ width, height }) => {
 
     const textSize1 = c.measureText(line1);
 
-    const line1Y = minY + blockHeight / 2 + textHeight * 0.3;
-    const line2Y = minY + 3 * blockHeight / 2 + gutterY + textHeight * 0.3;
+    const line1Y = minY + 1.5 * marginY;
+    const line2Y = line1Y + 2 * marginY;
+    const line3Y = height - 1.52 * marginY;
     const lineX = 1.5 * marginX;
 
     c.fillText(
@@ -257,7 +258,7 @@ const sketch = async ({ width, height }) => {
     c.strokeText(
       line3,
       lineX,
-      (height) / 2 + textHeight * 2.4
+      line3Y
     );
     c.restore();
 
@@ -265,7 +266,7 @@ const sketch = async ({ width, height }) => {
     c.fillText(
       line3,
       lineX,
-      (height) / 2 + textHeight * 2.4
+      line3Y
     );
 
     const sourceX = 0;
@@ -276,11 +277,11 @@ const sketch = async ({ width, height }) => {
     // const newWidth = width / 4;
     // const newHeight = newWidth / aspect;
 
-    const newHeight = height - 4 * marginY;
+    const newHeight = 0.8 * height - 4 * marginY;
     const newWidth = aspect * newHeight;
 
     const imgX = maxX - marginX - newWidth;
-    const imgY = 2 * marginY;
+    const imgY = blockHeight;
 
 
     c.beginPath();

@@ -20,9 +20,9 @@ const C = {
   source: 'hsl(70, 80%, 80%)',
   wave: 'hsl(0, 0%, 20%)',
   waves: [
-    'hsla(0, 0%, 20%)',
-    'hsla(0, 0%, 50%)',
-    'hsla(0, 0%, 80%)',
+    'hsla(10, 40%, 10%, 0.4)',
+    'hsla(120, 80%, 30%, 0.4)',
+    'hsla(180, 40%, 40%, 0.4)',
   ],
 };
 
@@ -73,6 +73,13 @@ function createWave(nPoints, pos, seed) {
   return points;
 }
 
+function uWrapOffset(arr, offset) {
+  return arr.map(([u, v], i) => {
+    const uWrapped = wrap(u + offset, 0, 1);
+    return [ uWrapped, v ];
+  }).sort(([x1], [x2]) => x1 - x2);
+}
+
 const sketch = async ({ width, height }) => {
 
   return ({ context, width, height, playhead, time }) => {
@@ -88,16 +95,16 @@ const sketch = async ({ width, height }) => {
     const shapePosX = marginX + (width - marginX) * playhead;
     const shapePosY = height * 0.5;
 
-    c.beginPath();
-    c.arc(
-      marginX + sourceRadius,
-      height * 0.5,
-      sourceRadius,
-      0, Math.PI * 2
-    );
-    c.strokeStyle = 'none';
-    c.fillStyle = C.source;
-    c.fill();
+    // c.beginPath();
+    // c.arc(
+    //   marginX + sourceRadius,
+    //   height * 0.5,
+    //   sourceRadius,
+    //   0, Math.PI * 2
+    // );
+    // c.strokeStyle = 'none';
+    // c.fillStyle = C.source;
+    // c.fill();
 
     const waveMinX = marginX;
     const waveMaxX = width - marginX;
@@ -105,26 +112,22 @@ const sketch = async ({ width, height }) => {
     const waveMaxY = height;
 
 
-    const wave1 = createWave(30, 1, 0);
+    const wave1 = createWave(40, 1, 0);
+    const wave2 = createWave(60, 2, 0);
     const amplitude = 1.0;
-    const offset = Math.floor(20 * playhead) / 20;
+    const offset = Math.floor(20 * playhead) / 20 + 0.01;
 
-    const waveWrapped1 = wave1.map(([ u, v ], i) => {
-      const uWrapped = wrap(u + 3 * offset, 0, 1);
-      return [ uWrapped, v ];
-    }).sort(([x1], [x2]) => x1 - x2);
+    const wave1Wrapped1 = uWrapOffset(wave1, 3.1 * offset);
+    const wave1Wrapped2 = uWrapOffset(wave1, 2.0 * offset);
+    const wave1Wrapped3 = uWrapOffset(wave1, 7.0 * offset);
+    const wave2Wrapped1 = uWrapOffset(wave2, 1.0 * offset);
 
-    const waveWrapped2 = wave1.map(([ u, v ], i) => {
-      const uWrapped = wrap(u + 2 * offset, 0, 1);
-      return [ uWrapped, v ];
-    }).sort(([x1], [x2]) => x1 - x2);
-
-    const waveWrapped3 = wave1.map(([ u, v ], i) => {
-      const uWrapped = wrap(u + 7 * offset, 0, 1);
-      return [ uWrapped, v ];
-    }).sort(([x1], [x2]) => x1 - x2);
-
-    const waves = [ waveWrapped1, waveWrapped2, waveWrapped3, ];
+    const waves = [
+      wave1Wrapped1,
+      wave1Wrapped2,
+      wave1Wrapped3,
+      wave2Wrapped1,
+    ];
     for (let i = 0; i < waves.length; i++) {
       const wave = waves[i];
       c.beginPath();

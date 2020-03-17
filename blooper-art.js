@@ -5,8 +5,8 @@ import random from 'canvas-sketch-util/random';
 import load from 'load-asset';
 
 const settings = {
-  dimensions: [ 2048, 2048 ],
-  // dimensions: [ 608, 1080, ],
+  // dimensions: [ 2048, 2048 ],
+  dimensions: [ 608, 1080, ],
   // dimensions: [ 1200, 628 ],
   animate: true,
   duration: 15,
@@ -207,7 +207,7 @@ const sketch = async ({ width, height }) => {
     const line2 = 'pedalmarkt.com';
     const line3 = '';
 
-    const textHeight = 0.07 * width;;
+    const textHeight = 0.09 * width;;
 
     c.font = `${textHeight}px Coolvetica`;
     c.fillStyle = PINK;
@@ -218,14 +218,14 @@ const sketch = async ({ width, height }) => {
 
     const textSize1 = c.measureText(line1);
 
-    const line1Y = minY + 1.5 * marginY;
-    const line2Y = line1Y + 2 * marginY;
+    const line1Y = minY + 3.4 * marginY;
+    const line2Y = line1Y + 2.4 * marginY;
     const line3Y = height - 1.52 * marginY;
     const lineX = 1.5 * marginX;
 
     c.fillText(
       line1,
-      lineX,
+      (width - textSize1.width) / 2,
       line1Y
     );
 
@@ -239,7 +239,7 @@ const sketch = async ({ width, height }) => {
 
     c.fillText(
       line2,
-      lineX,
+      (width - textSize2.width) / 2,
       line2Y
     );
 
@@ -277,10 +277,10 @@ const sketch = async ({ width, height }) => {
     // const newWidth = width / 4;
     // const newHeight = newWidth / aspect;
 
-    const newHeight = 0.8 * height - 4 * marginY;
+    const newHeight = 0.65 * height - 4 * marginY;
     const newWidth = aspect * newHeight;
 
-    const imgX = maxX - marginX - newWidth;
+    const imgX = (width - newWidth) / 2;
     const imgY = blockHeight;
 
 

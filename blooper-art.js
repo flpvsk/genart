@@ -203,9 +203,9 @@ const sketch = async ({ width, height }) => {
       height - marginY
     );
 
-    const line1 = '28.03 12pm-5pm';
-    const line2 = 'blooper party';
-    const line3 = 'paolo pinkel';
+    const line1 = 'now available';
+    const line2 = 'pedalmarkt.com';
+    const line3 = '';
 
     const textHeight = 0.07 * width;;
 

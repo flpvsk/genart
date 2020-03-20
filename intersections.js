@@ -174,7 +174,7 @@ const sketch = async ({ context, width, height }) => {
     return lerp(0, height - 2 * marginY, val);
   }
 
-  const colorCount = 6;
+  const colorCount = 4;
   const palette = random.shuffle(
     random.pick(palettes)
   ).slice(1, colorCount);
@@ -202,54 +202,68 @@ const sketch = async ({ context, width, height }) => {
       return;
     }
 
-    for (let point of points) {
-      c.beginPath();
-      c.arc(
-        point[0],
-        point[1],
-        0.01 * minDimension,
-        0, Math.PI * 2
-      );
-      c.fillStyle = palette[0];
-      // c.fill();
-    }
-
-    c.fillStyle = 'none';
     c.beginPath();
-    c.arc(
-      x1, y1, R1,
-      circleAngle([x1, y1], points[0]),
-      circleAngle([x1, y1], points[1]),
-    );
-    c.strokeStyle = palette[0];
-    c.lineWidth = lerpDim(0.01);
-    c.fillStyle = fillColor;
-    // c.fillStyle = 'white';
-    c.fill();
+    c.moveTo(x1, y1);
+    c.lineTo(x2, y2);
+    c.strokeStyle = palette[1];
     c.stroke();
 
     c.beginPath();
-    c.arc(
-      x2, y2, R2,
-      circleAngle([x2, y2], points[0]),
-      circleAngle([x2, y2], points[1]),
-      true
-    );
-    c.fillStyle = fillColor;
-    // c.fillStyle = 'white';
-    c.fill();
-    c.strokeStyle = palette[0];
-    c.lineWidth = lerpDim(0.01);
+    c.moveTo(points[0][0], points[0][1]);
+    c.lineTo(points[1][0], points[1][1]);
+    c.strokeStyle = fillColor;
     c.stroke();
+
+    // for (let point of points) {
+    //   c.beginPath();
+    //   c.arc(
+    //     point[0],
+    //     point[1],
+    //     0.1 * minDimension,
+    //     0, Math.PI * 2
+    //   );
+    //   c.fillStyle = palette[1];
+    //   c.fill();
+    // }
+
+    // c.fillStyle = 'none';
+    // c.beginPath();
+    // c.arc(
+    //   x1, y1, R1,
+    //   circleAngle([x1, y1], points[0]),
+    //   circleAngle([x1, y1], points[1]),
+    // );
+    // c.strokeStyle = palette[0];
+    // c.lineWidth = lerpDim(0.01);
+    // c.fillStyle = fillColor;
+    // // c.fillStyle = 'white';
+    // c.fill();
+    // c.stroke();
+
+    // c.beginPath();
+    // c.arc(
+    //   x2, y2, R2,
+    //   circleAngle([x2, y2], points[0]),
+    //   circleAngle([x2, y2], points[1]),
+    //   true
+    // );
+    // c.fillStyle = fillColor;
+    // // c.fillStyle = 'white';
+    // c.fill();
+    // c.strokeStyle = palette[0];
+    // c.lineWidth = lerpDim(0.01);
+    // c.stroke();
+
+
   }
 
-  const N = 100;
+  const N = 30;
   const circles = [];
   for (let i = 0; i < N; i++) {
-    const u = random.gaussian(0.5, 0.4);
+    const u = i / N; // random.gaussian(0.5, 0.4);
     const v = random.value();
-    const r = random.gaussian(0.2, 0.1);
-    circles.push([[ u, v ], r, random.pick(palette.slice(1))]);
+    const r = random.gaussian(8 / N, 1 / N);
+    circles.push([[ u, v ], r, random.pick(palette.slice(2))]);
   }
 
   return ({ context, width, height, playhead, }) => {

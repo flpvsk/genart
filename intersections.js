@@ -4,6 +4,8 @@ import { lerp, wrap, clamp } from 'canvas-sketch-util/math';
 import random from 'canvas-sketch-util/random';
 import load from 'load-asset';
 
+import palettes from 'nice-color-palettes';
+
 function getBaseLog(base, x) {
   return Math.log(x) / Math.log(base);
 }
@@ -58,7 +60,7 @@ function clipOrRestore(c, p) {
 }
 
 
-const PRECISION = 10 ** 5;
+const PRECISION = 10 ** 10;
 
 function round(v, precision) {
   return Math.round(v * precision) / precision;
@@ -140,7 +142,9 @@ function circleIntersect(p1, r1, p2, r2) {
   return [ i1, i2 ];
 }
 
-const sketch = async ({ width, height }) => {
+
+const sketch = async ({ context, width, height }) => {
+  const c = context;
   const maxDimension = Math.max(width, height);
   const minDimension = Math.min(width, height);
   const marginX = 0.2 * maxDimension;
@@ -162,45 +166,41 @@ const sketch = async ({ width, height }) => {
     return lerpY(val);
   }
 
-  return ({ context, width, height, playhead, }) => {
-    const c = context;
+  function lerpDim(val) {
+    if (width < height) {
+      return lerp(0, width - 2 * marginX, val);
+    }
 
-    c.fillStyle = 'white';
-    c.fillRect(0, 0, width, height);
+    return lerp(0, height - 2 * marginY, val);
+  }
 
-    const v = 0.5;
+  const colorCount = 6;
+  const palette = random.shuffle(
+    random.pick(palettes)
+  ).slice(1, colorCount);
 
-    const u1 = random.value();
-    const r1 = random.value() * 0.5;
-
-    const u2 = random.value();
-    const r2 = random.value() * 0.5;
+  function drawCircleIntersection(c1, r1, c2, r2, fillColor) {
+    const [u1, v1] = c1;
+    const [u2, v2] = c2;
 
     c.lineWidth = 0.005 * minDimension;
     c.fillStyle = 'none';
 
     const x1 = lerpX(u1);
     const x2 = lerpX(u2);
-    const y1 = lerpY(v);
-    const y2 = y1;
-    const R1 = lerpMin(r1);
-    const R2 = lerpMin(r2);
-
-    c.beginPath();
-    c.arc(x1, y1, R1, 0, Math.PI * 2);
-    c.closePath();
-    c.strokeStyle = C.guide1;
-    // c.stroke();
-
-    c.beginPath();
-    c.arc(x2, y2, R2, 0, Math.PI * 2);
-    c.strokeStyle = C.guide2;
-    // c.stroke();
+    const y1 = lerpY(v1);
+    const y2 = lerpY(v2);
+    const R1 = lerpDim(r1);
+    const R2 = lerpDim(r2);
 
     const points = circleIntersect(
       [x1, y1], R1,
       [x2, y2], R2,
     );
+
+    if (points.length < 2) {
+      return;
+    }
 
     for (let point of points) {
       c.beginPath();
@@ -210,29 +210,22 @@ const sketch = async ({ width, height }) => {
         0.01 * minDimension,
         0, Math.PI * 2
       );
-      c.fillStyle = C.guide0;
-      c.fill();
+      c.fillStyle = palette[0];
+      // c.fill();
     }
 
-    if (points.length < 2) {
-      return;
-    }
-
-    // c.beginPath();
-    // c.moveTo(points[0][0], points[0][1]);
-    // c.lineTo(points[1][0], points[1][1]);
-    // c.lineWidth = 2;
-    // c.strokeStyle = C.guide4;
-    // c.stroke();
-
+    c.fillStyle = 'none';
     c.beginPath();
     c.arc(
       x1, y1, R1,
       circleAngle([x1, y1], points[0]),
       circleAngle([x1, y1], points[1]),
     );
-    c.strokeStyle = 'black';
-    c.lineWidth = 10;
+    c.strokeStyle = palette[0];
+    c.lineWidth = lerpDim(0.01);
+    c.fillStyle = fillColor;
+    // c.fillStyle = 'white';
+    c.fill();
     c.stroke();
 
     c.beginPath();
@@ -242,9 +235,37 @@ const sketch = async ({ width, height }) => {
       circleAngle([x2, y2], points[1]),
       true
     );
-    c.strokeStyle = 'black';
-    c.lineWidth = 10;
+    c.fillStyle = fillColor;
+    // c.fillStyle = 'white';
+    c.fill();
+    c.strokeStyle = palette[0];
+    c.lineWidth = lerpDim(0.01);
     c.stroke();
+  }
+
+  const N = 100;
+  const circles = [];
+  for (let i = 0; i < N; i++) {
+    const u = random.gaussian(0.5, 0.4);
+    const v = random.value();
+    const r = random.gaussian(0.2, 0.1);
+    circles.push([[ u, v ], r, random.pick(palette.slice(1))]);
+  }
+
+  return ({ context, width, height, playhead, }) => {
+
+    c.fillStyle = palette[0];
+    c.fillRect(0, 0, width, height);
+
+    for (let i = 1; i < circles.length; i++) {
+      const circle1 = circles[i - 1];
+      const circle2 = circles[i - 0];
+
+      const [ [ u1, v1 ], r1, color1 ] = circle1;
+      const [ [ u2, v2 ], r2, color2 ] = circle2;
+
+      drawCircleIntersection([u1, v1], r1, [u2, v2], r2, color1);
+    }
   };
 };
 

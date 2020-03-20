@@ -211,7 +211,17 @@ const sketch = async ({ context, width, height }) => {
     c.beginPath();
     c.moveTo(points[0][0], points[0][1]);
     c.lineTo(points[1][0], points[1][1]);
+    c.strokeStyle = palette[1];
+    c.stroke();
+
     c.strokeStyle = fillColor;
+    c.lineWidth = lerpDim(0.003);
+    c.beginPath();
+    c.arc(x1, y1, R1, 0, Math.PI * 2);
+    c.stroke();
+
+    c.beginPath();
+    c.arc(x2, y2, R2, 0, Math.PI * 2);
     c.stroke();
 
     // for (let point of points) {
@@ -257,7 +267,7 @@ const sketch = async ({ context, width, height }) => {
 
   }
 
-  const N = 30;
+  const N = 10;
   const circles = [];
   for (let i = 0; i < N; i++) {
     const u = i / N; // random.gaussian(0.5, 0.4);

@@ -183,7 +183,7 @@ const sketch = async ({ context, width, height }) => {
     const [u1, v1] = c1;
     const [u2, v2] = c2;
 
-    c.lineWidth = 0.005 * minDimension;
+    c.lineWidth = 0.004 * minDimension;
     c.fillStyle = 'none';
 
     const x1 = lerpX(u1);
@@ -198,9 +198,9 @@ const sketch = async ({ context, width, height }) => {
       [x2, y2], R2,
     );
 
-    if (points.length < 2) {
-      return;
-    }
+    // if (points.length < 2) {
+    //   return;
+    // }
 
     c.beginPath();
     c.moveTo(x1, y1);
@@ -208,14 +208,14 @@ const sketch = async ({ context, width, height }) => {
     c.strokeStyle = palette[1];
     c.stroke();
 
-    c.beginPath();
-    c.moveTo(points[0][0], points[0][1]);
-    c.lineTo(points[1][0], points[1][1]);
-    c.strokeStyle = palette[1];
-    c.stroke();
+    // c.beginPath();
+    // c.moveTo(points[0][0], points[0][1]);
+    // c.lineTo(points[1][0], points[1][1]);
+    // c.strokeStyle = palette[1];
+    // c.stroke();
 
     c.strokeStyle = fillColor;
-    c.lineWidth = lerpDim(0.003);
+    c.lineWidth = lerpDim(0.002);
     c.beginPath();
     c.arc(x1, y1, R1, 0, Math.PI * 2);
     c.stroke();
@@ -271,8 +271,8 @@ const sketch = async ({ context, width, height }) => {
   const circles = [];
   for (let i = 0; i < N; i++) {
     const u = i / N; // random.gaussian(0.5, 0.4);
-    const v = random.value();
-    const r = random.gaussian(8 / N, 1 / N);
+    const v = random.value() * 0.9 + 0.1;
+    const r = Math.abs(random.gaussian(4 / N, 3 / N));
     circles.push([[ u, v ], r, random.pick(palette.slice(2))]);
   }
 
@@ -281,9 +281,10 @@ const sketch = async ({ context, width, height }) => {
     c.fillStyle = palette[0];
     c.fillRect(0, 0, width, height);
 
-    for (let i = 1; i < circles.length; i++) {
-      const circle1 = circles[i - 1];
-      const circle2 = circles[i - 0];
+    for (let i = 0; i < circles.length; i++) {
+      const prev = wrap(i - 1, 0, circles.length);
+      const circle1 = circles[prev];
+      const circle2 = circles[i];
 
       const [ [ u1, v1 ], r1, color1 ] = circle1;
       const [ [ u2, v2 ], r2, color2 ] = circle2;

@@ -152,7 +152,7 @@ const sketch = async ({ width, height }) => {
     // );
 
 
-    const offsetY = -playhead;
+    const offsetY = -0.5 * playhead;
     const linesCount = 80;
     const pointsCount = 40;
     for (let j = 0; j <= linesCount; j++) {

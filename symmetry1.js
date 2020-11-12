@@ -82,15 +82,19 @@ const sketch = async ({ context, width, height }) => {
   }
 
   const colorCount = 4;
-  const palette = random.shuffle(
-    random.pick(palettes)
-  ).slice(1, colorCount);
+  // const palette = random.shuffle(
+  //   random.pick(palettes)
+  // ).slice(1, colorCount);
+  const palette = [
+    `rgba(0,0,0,0)`,
+    `rgba(1,1,1,1)`,
+  ];
 
 
   const N = 1;
   const figures = [];
   for (let i = 0; i < N; i++) {
-    const kind = random.pick(['arc', 'line']);
+    const kind = random.pick(['arc']);
     if (kind === 'line') {
       figures.push([
         kind,
@@ -157,9 +161,9 @@ const sketch = async ({ context, width, height }) => {
     c.fillStyle = palette[0];
     c.fillRect(0, 0, width, height);
 
-    const ROWS = 8;
-    const COLS = 8;
-    const SYMMETRY = 4;
+    const ROWS = 10;
+    const COLS = 10;
+    const SYMMETRY = 3;
 
     for (let j = 0; j < ROWS; j++) {
       for (let k = 0; k < COLS; k++) {

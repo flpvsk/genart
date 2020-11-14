@@ -15,21 +15,6 @@ const settings = {
 };
 
 
-const createGrid = (countX, countY) => {
-  const points = [];
-  for (let x = 0; x < countX; x++) {
-    for (let y = 0; y < countY; y++) {
-      const u = x / (countX - 1);
-      const v = y / (countY - 1);
-      points.push({
-        position: [ u, v ],
-      });
-    }
-  }
-
-  return points;
-};
-
 
 const sTheme = {
   background: "#111111",
@@ -81,8 +66,6 @@ const loadAndSketch = async ({ context, width, height }) => {
   const cursor = [ 0, 0 ];
   const focus = [ -1, -1 ];
 
-  const grid = createGrid(countX, countY);
-
   function keyPressHandler(e) {
     if (!e) return;
     const { keyCode } = e;
@@ -110,6 +93,8 @@ const loadAndSketch = async ({ context, width, height }) => {
   let lerpY;
   let gridRadius;
   let gridPitch;
+  let gridMarginX;
+  let gridMarginY;
 
   function calculateMargins(width, height) {
     const _longSide = Math.max(width, height);
@@ -118,22 +103,26 @@ const loadAndSketch = async ({ context, width, height }) => {
     let _marginX = 0;
     let _marginY = 0;
     if (width / countX > height / countY) {
-      _marginY = 0.2 * height;
+      _marginY = 0.05 * height;
       _marginX = (width - (countX / countY) * (height - _marginY));
     }
 
     if (width / countX <= height / countY) {
-      _marginX = 0.2 * width;
+      _marginX = 0.05 * width;
       _marginY = (height - (countY / countX) * (width - _marginX));
     }
 
-    gridPitch = (width - _marginX) / countX;
-    console.log((width - _marginX) / countX, (height - _marginY) / countY);
+    gridPitch = Math.floor((width - _marginX) / countX);
+    gridRadius = Math.floor(0.25 * gridPitch);
 
-    gridRadius = Math.floor(0.014 * _shortSide);
+    _marginX = width - gridPitch * countX;
+    _marginY = height - gridPitch * countY;
 
     lerpX = (v) => lerp(_marginX / 2, width - _marginX / 2, v);
     lerpY = (v) => lerp(_marginY / 2, height - _marginY / 2, v);
+
+    gridMarginX = _marginX;
+    gridMarginY = _marginY;
   }
 
   calculateMargins(width, height);
@@ -149,13 +138,13 @@ const loadAndSketch = async ({ context, width, height }) => {
     body: theme.b_med,
     text: theme.f_high,
     point: theme.b_high,
+    notch: theme.b_high,
   };
 
   function gridToXY(g, { countX, countY }) {
-    const p = grid[g[0] * countY + g[1]];
     return [
-      lerpX(p.position[0]),
-      lerpY(p.position[1]),
+      gridMarginX / 2 + g[0] * gridPitch + gridPitch / 2,
+      gridMarginY / 2 + g[1] * gridPitch + gridPitch / 2
     ];
   }
 
@@ -179,10 +168,10 @@ const loadAndSketch = async ({ context, width, height }) => {
 
     context.fillStyle = dipColors.body;
     context.fillRect(
-      p1[0] - gridRadius,
-      p1[1] - gridRadius,
-      pMid[0] - p1[0] + 2 * gridRadius,
-      pMid[1] - p1[1] + 2 * gridRadius
+      Math.min(p1[0], pMid[0]) - gridRadius,
+      Math.min(p1[1], pMid[1]) - gridRadius,
+      Math.abs(pMid[0] - p1[0]) + 2 * gridRadius,
+      Math.abs(pMid[1] - p1[1]) + 2 * gridRadius
     );
   }
 
@@ -197,6 +186,57 @@ const loadAndSketch = async ({ context, width, height }) => {
     countX,
     countY,
   }) {
+    const pinCount = pins.length;
+    const firstPin = pins[0];
+    const lastPin = pins[pins.length - 1];
+    const midPin = pins[Math.round(pinCount / 2)];
+
+    let isReversed = false;
+    let isVertical = false;
+    if (firstPin[0] > midPin[0] || firstPin[1] > midPin[1]) {
+      isReversed = true;
+    }
+
+    if (Math.abs(firstPin[1] - midPin[1]) === pinCount / 2 - 1) {
+      isVertical = true;
+    }
+
+    context.save()
+
+    const p1 = gridToXY(firstPin, { countX, countY });
+    const pMid = gridToXY(midPin, { countX, countY });
+
+    const dx = Math.abs(p1[0] - pMid[0]);
+    const dy = Math.abs(p1[1] - pMid[1]);
+    const pXMin = Math.min(p1[0], pMid[0]);
+    const pYMin = Math.min(p1[1], pMid[1]);
+
+    context.translate(pXMin + dx / 2, pYMin + dy / 2);
+
+    if (!isVertical) {
+      context.rotate(Math.PI / 2);
+    }
+
+    if (isReversed) {
+      context.rotate(Math.PI);
+    }
+
+    context.beginPath()
+    context.arc(
+      0,
+      -Math.floor(pinCount / 4) * gridPitch - gridRadius,
+      gridRadius * 1.5,
+      0,
+      Math.PI,
+      false,
+    );
+
+    context.closePath();
+    context.fillStyle = dipColors.notch;
+    context.fill();
+
+    context.restore();
+
     for (let pin of pins) {
       const p = gridToXY(pin, { countX, countY });
 
@@ -248,23 +288,42 @@ const loadAndSketch = async ({ context, width, height }) => {
 
     const dx = Math.abs(p1[0] - pMid[0]);
     const dy = Math.abs(p1[1] - pMid[1]);
+    const pXMin = Math.min(p1[0], pMid[0]);
+    const pYMin = Math.min(p1[1], pMid[1]);
 
-    context.translate(p1[0] + dx / 2, p1[1] + dy / 2);
+    context.translate(pXMin + dx / 2, pYMin + dy / 2);
 
     if (!isVertical) {
-      context.rotate(-Math.PI / 2);
+      context.rotate(Math.PI / 2);
     }
 
     if (isReversed) {
       context.rotate(Math.PI);
     }
 
+    context.save();
+    context.rotate(Math.PI / 2);
+
+    context.textAlign = 'center';
+    context.font = `${fontSize}px Fira Code`;
+    context.fillStyle = dipColors.text;
+    context.fillText(
+      name,
+      0,
+      textHeight * .5,
+      dx,
+    );
+    context.restore();
+
+
     for (let i = 0; i < pins.length; i++) {
       let col = i < pinCount / 2 ? 0 : 1;
       let row = i < pinCount / 2 ? i : pinCount - i - 1;
 
+      // TODO: measure text height and font size for this case
+      // instead of ballparking
       context.textAlign = col ? 'right' : 'left';
-      context.font = `${fontSize}px Fira Code`;
+      context.font = `${fontSize - 2}px Fira Code`;
       context.fillStyle = dipColors.text;
 
       // const textInfo = context.measureText(text);
@@ -273,17 +332,11 @@ const loadAndSketch = async ({ context, width, height }) => {
 
       context.fillText(
         pinNames[i],
-        colSign * (2 * gridPitch - 2 * gridRadius),
-        rowSign *  1.11 * gridPitch + .5 * textHeight
-      );
-
-      context.fillRect(
-        -dx,
-        rowSign * 1.101 * gridPitch + .5 * textHeight,
-        2 * dx,
-        2
+        colSign * (2 * gridPitch - 3 * gridRadius),
+        rowSign *  gridPitch + .4 * textHeight
       );
     }
+
 
     context.restore();
   }
@@ -563,28 +616,29 @@ const loadAndSketch = async ({ context, width, height }) => {
       context.fillStyle = theme.background;
       context.fillRect(0, 0, width, height);
 
-      for (let i = 0; i < grid.length; i++) {
-        const col = Math.floor(i / countY);
-        const row = i - col * countY;
+      for (let col = 0; col < countX; col++) {
+        for (let row = 0; row < countY; row++) {
+          context.beginPath();
+          context.fillStyle = theme.b_low;
+          context.strokeStyle = null;
 
-        context.beginPath();
-        context.fillStyle = theme.b_low;
-        context.strokeStyle = null;
+          const [ x, y ] = gridToXY([ col, row ], { countX, countY });
 
-        const x = lerpX(grid[i].position[0]);
-        const y = lerpY(grid[i].position[1]);
+          context.arc(
+            x,
+            y,
+            gridRadius,
+            0,
+            2 * Math.PI,
+            false
+          );
 
-        context.arc(
-          x,
-          y,
-          gridRadius,
-          0,
-          2 * Math.PI,
-          false
-        );
+          context.fill();
+          context.closePath();
+        }
+      }
 
-        context.fill();
-        context.closePath();
+
 
         // if (col === cursor[0] && row === cursor[1]) {
         //   const x = lerpX(grid[i].position[0]);
@@ -598,7 +652,6 @@ const loadAndSketch = async ({ context, width, height }) => {
         //     sizeUnit,
         //   );
         // }
-      }
 
       const components = [
         {
@@ -640,7 +693,7 @@ const loadAndSketch = async ({ context, width, height }) => {
         {
           type: 'dip',
           id: 'IC1',
-          name: 'LM124',
+          name: 'LM324',
           pins: [
             [6, 0], [6, 1], [6, 2], [6, 3],
             [6, 4], [6, 5], [6, 6],
@@ -655,15 +708,33 @@ const loadAndSketch = async ({ context, width, height }) => {
           ],
         },
 
+        // {
+        //   type: 'dip',
+        //   id: 'IC1',
+        //   name: 'TL072',
+        //   pins: [
+        //     [6, 0], [6, 1], [6, 2], [6, 3],
+        //     [6, 4], [6, 5], [6, 6],
+        //     [9, 6], [9, 5], [9, 4], [9, 3],
+        //     [9, 2], [9, 1], [9, 0]
+        //   ],
+        //   pinNames: [
+        //     '1OUT', '1IN-', '1IN+', 'Vcc',
+        //     '2IN+', '2IN-', '2OUT',
+        //     '3OUT', '3IN-', '3IN+', 'GND',
+        //     '4IN+', '4IN-', '4OUT'
+        //   ],
+        // },
+
         {
           type: 'dip',
           id: 'IC1',
-          name: 'LM124',
+          name: 'LM324',
           pins: [
-            [11, 0], [12, 0], [13, 0], [14, 0],
-            [15, 0], [16, 0], [17, 0],
-            [17, 3], [16, 3], [15, 3], [14, 3],
-            [13, 3], [12, 3], [11, 3]
+            [11, 3], [12, 3], [13, 3], [14, 3],
+            [15, 3], [16, 3], [17, 3],
+            [17, 0], [16, 0], [15, 0], [14, 0],
+            [13, 0], [12, 0], [11, 0]
           ],
           pinNames: [
             '1OUT', '1IN-', '1IN+', 'Vcc',

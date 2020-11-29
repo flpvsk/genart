@@ -52,7 +52,9 @@ const solarizedDarkTheme = {
   "b_inv": "#eee8d5",
 };
 
-const theme = teenageTheme;
+// const theme = solarizedDarkTheme;
+// const theme = teenageTheme;
+const theme = sTheme;
 
 const KEY_UP = 38;
 const KEY_DOWN = 40;
@@ -139,6 +141,10 @@ const loadAndSketch = async ({ context, width, height }) => {
     text: theme.f_high,
     point: theme.b_high,
     notch: theme.b_high,
+  };
+
+  const traceColors = {
+    trace: theme.b_high,
   };
 
   function gridToXY(g, { countX, countY }) {
@@ -257,6 +263,50 @@ const loadAndSketch = async ({ context, width, height }) => {
       context.fillStyle = dipColors.point;
       context.fill();
     }
+  }
+
+  function drawTrace(context, {
+    path,
+  }, {
+    gridPitch,
+    gridRadius,
+    countX,
+    countY,
+  }) {
+    if (!path || !path.length) {
+      return;
+    }
+
+    const first = path[0];
+    const last = path[path.length - 1];
+    let pGridX = first[0];
+    let pGridY = first[1];
+
+    while (pGridX <= last[0] && pGridY <= last[1]) {
+      const p = gridToXY([ pGridX, pGridY ], { countX, countY });
+      context.beginPath();
+      context.arc(p[0], p[1], gridRadius * .5, 0, Math.PI * 2);
+      context.closePath();
+      context.fillStyle = traceColors.trace;
+      context.fill();
+      pGridX += (last[0] > first[0] ? 1 : 0) * 1;
+      pGridY += (last[1] > first[1] ? 1 : 0) * 1;
+    }
+
+    for (let pGrid of path) {
+    }
+
+    context.beginPath();
+    const p0 = gridToXY(path[0], { countX, countY });
+    context.moveTo(p0[0], p0[1]);
+
+    for (let pGrid of path.slice(1)) {
+      const p = gridToXY(pGrid, { countX, countY });
+      context.lineTo(p[0], p[1]);
+    }
+    context.strokeStyle = traceColors.trace;
+    context.lineWidth = gridRadius * .5;
+    context.stroke();
   }
 
   function drawDipCaption(context, {
@@ -811,7 +861,25 @@ const loadAndSketch = async ({ context, width, height }) => {
             '3OUT', '3IN-', '3IN+', 'GND',
             '4IN+', '4IN-', '4OUT'
           ],
-        }
+        },
+
+        {
+          type: 'trace',
+          path: [ [ 0, 0 ], [ 0, 2 ]  ],
+        },
+
+        {
+          type: 'trace',
+          path: [ [ 0, 8 ], [ 2, 8 ]  ],
+        },
+        {
+          type: 'trace',
+          path: [ [ 7, 7 ], [ 8, 8 ]  ],
+        },
+        {
+          type: 'trace',
+          path: [ [ 8, 8 ], [ 8, 9 ]  ],
+        },
       ];
 
 
@@ -842,6 +910,7 @@ const loadAndSketch = async ({ context, width, height }) => {
         {
           resistor: drawResistorLegs,
           dip: drawDipPins,
+          trace: drawTrace,
         },
         {
           resistor: drawResistorCaption,

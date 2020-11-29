@@ -130,21 +130,23 @@ const loadAndSketch = async ({ context, width, height }) => {
   calculateMargins(width, height);
 
   const resistorColors = {
-    leg: theme.b_high,
+    leg: theme.f_low,
     body: theme.b_med,
     text: theme.f_high,
-    point: theme.b_high,
+    point: theme.f_low,
   };
 
   const dipColors = {
     body: theme.b_med,
     text: theme.f_high,
-    point: theme.b_high,
-    notch: theme.b_high,
+    point: theme.f_low,
+    notch: theme.f_low,
   };
 
   const traceColors = {
     trace: theme.b_high,
+    cutBg: theme.b_low,
+    cutFg: theme.b_high,
   };
 
   function gridToXY(g, { countX, countY }) {
@@ -285,7 +287,7 @@ const loadAndSketch = async ({ context, width, height }) => {
     while (pGridX <= last[0] && pGridY <= last[1]) {
       const p = gridToXY([ pGridX, pGridY ], { countX, countY });
       context.beginPath();
-      context.arc(p[0], p[1], gridRadius * .5, 0, Math.PI * 2);
+      context.arc(p[0], p[1], gridRadius * .6, 0, Math.PI * 2);
       context.closePath();
       context.fillStyle = traceColors.trace;
       context.fill();
@@ -306,6 +308,39 @@ const loadAndSketch = async ({ context, width, height }) => {
     }
     context.strokeStyle = traceColors.trace;
     context.lineWidth = gridRadius * .5;
+    context.stroke();
+  }
+
+  function drawCut(context, {
+    location,
+  }, {
+    gridPitch,
+    gridRadius,
+    countX,
+    countY,
+  }) {
+    const p = gridToXY(location, { countX, countY });
+
+    context.beginPath();
+    context.arc(p[0], p[1], gridRadius * 1.1, 0, Math.PI * 2);
+    context.closePath();
+
+    context.fillStyle = traceColors.cutBg;
+    context.fill();
+
+    const d = gridRadius / Math.sqrt(2);
+    context.beginPath();
+    context.moveTo(p[0] - d, p[1] - d);
+    context.lineTo(p[0] + d, p[1] + d);
+    context.closePath();
+
+    context.strokeStyle = traceColors.cutFg;
+    context.stroke();
+
+    context.beginPath();
+    context.moveTo(p[0] + d, p[1] - d);
+    context.lineTo(p[0] - d, p[1] + d);
+    context.closePath();
     context.stroke();
   }
 
@@ -880,6 +915,50 @@ const loadAndSketch = async ({ context, width, height }) => {
           type: 'trace',
           path: [ [ 8, 8 ], [ 8, 9 ]  ],
         },
+        {
+          type: 'trace',
+          path: [ [ 0, 4 ], [ 6, 4 ]  ],
+        },
+        {
+          type: 'trace',
+          path: [ [ 8, 4 ], [ 19, 4 ]  ],
+        },
+        {
+          type: 'cut',
+          location: [ 7, 4 ],
+        },
+        {
+          type: 'trace',
+          path: [ [ 0, 5 ], [ 2, 5 ]  ],
+        },
+        {
+          type: 'trace',
+          path: [ [ 4, 5 ], [ 7, 5 ]  ],
+        },
+        {
+          type: 'trace',
+          path: [ [ 9, 5 ], [ 11, 5 ]  ],
+        },
+        {
+          type: 'trace',
+          path: [ [ 13, 5 ], [ 16, 5 ]  ],
+        },
+        {
+          type: 'cut',
+          location: [ 12, 5 ],
+        },
+        {
+          type: 'cut',
+          location: [ 3, 5 ],
+        },
+        {
+          type: 'cut',
+          location: [ 17, 5 ],
+        },
+        {
+          type: 'cut',
+          location: [ 8, 5 ],
+        },
       ];
 
 
@@ -908,9 +987,12 @@ const loadAndSketch = async ({ context, width, height }) => {
           dip: drawDipBody,
         },
         {
+          trace: drawTrace,
+          cut: drawCut,
+        },
+        {
           resistor: drawResistorLegs,
           dip: drawDipPins,
-          trace: drawTrace,
         },
         {
           resistor: drawResistorCaption,

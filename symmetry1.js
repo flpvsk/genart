@@ -94,7 +94,7 @@ const sketch = async ({ context, width, height }) => {
   const N = 1;
   const figures = [];
   for (let i = 0; i < N; i++) {
-    const kind = random.pick(['arc']);
+    const kind = random.pick(['arc', 'line']);
     if (kind === 'line') {
       figures.push([
         kind,

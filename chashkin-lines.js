@@ -8,7 +8,7 @@ const glsl = require('glslify');
 const palettes = require('nice-color-palettes');
 const memoize = require('memoize');
 
-// const seed = random.getRandomSeed();
+const seed = random.getRandomSeed();
 // const seed = '88356';
 // const seed = '69211';
 // const seed = '300809';
@@ -17,7 +17,7 @@ const memoize = require('memoize');
 // const seed = '272310';
 // const seed = '918835';
 // const seed = '32361';
-const seed = '182141';
+// const seed = '182141';
 random.setSeed(seed);
 console.log('seed', seed);
 

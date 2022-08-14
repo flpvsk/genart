@@ -80,13 +80,18 @@ void main (void) {
     sample = quantize(sample, 4);
     // sample = vec4((sample.r + sample.g + sample.b) / 3.);
 
-    float h = step(0.1, fract(st.x * z));
-    float v = step(0.1, fract(st.y * z));
+
+    // float h = step(0.1, fract(st.x * z));
+    // float v = step(0.1, fract(st.y * z));
+
+    float h = distance(fract(st.x * z), 0.5);
+    float v = distance(fract(st.y * z), 0.5);
+
     grid = (
       min(v, h) * color
       + 2. * snoise(80. * vec2(st)) * snoise(10000.0 * vec2(st)) * vec4(0.5)
     );
 
-    // gl_FragColor = min(sample, grid);
-    gl_FragColor = sample;
+    gl_FragColor = min(sample, grid);
+    // gl_FragColor = sample;
 }

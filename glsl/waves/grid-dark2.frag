@@ -58,14 +58,14 @@ float put(float scale, float moveY, float v) {
 }
 
 vec4 quantize(vec4 v, int steps) {
-  v = min(v * 1.7, vec4(1.0));
-  return (1. / float(steps)) * floor(v * float(steps) + 0.5);
+  // v = min(v * 1.7, vec4(1.0));
+  return min(vec4(1.0), (1. / float(steps)) * floor(v * float(steps) + 0.5));
 }
 
 void main (void) {
     vec2 st = gl_FragCoord.xy / u_resolution.xy;
     float aspect = u_resolution.x / u_resolution.y;
-    // st.x *= aspect;
+    st.x *= aspect;
 
     float playhead = u_tex0CurrentFrame / u_tex0TotalFrames;
     float playheadWrap = sin(10. * PI * playhead * 0.1) + 1.0;
@@ -74,12 +74,13 @@ void main (void) {
     vec4 grid = color;
 
     // gl_FragColor = min(vec4(color, 1.0), texture2D(u_tex0, st));
-    float z = 96.;
+    float z = 120.;
     vec2 samplePos = vec2(floor(st.x * z) / z, floor(st.y * z) / z);
     vec4 sample = texture2D(u_tex0, samplePos);
     float sampleAvg = (sample.r + sample.g + sample.b) / 3.;
+    sample = vec4(step(0.4, sampleAvg));
     // sample = exp(sample * 0.1);
-    sample = quantize(sample, 5);
+    // sample = quantize(sample, 1);
     // sample = vec4((sample.r + sample.g + sample.b) / 3.);
 
 
@@ -92,14 +93,17 @@ void main (void) {
     // (1. - distance(fract(st.xy * z), vec2(0.5, 0.5)) * exp(sampleAvg * 0.9)) * color
 
     grid = (
-      min(0.7, (
-        1. - distance(fract(st.xy * z), vec2(0.5, 0.5)) *
-        exp(sampleAvg * 0.3)
-      )) * color * exp(snoise(10000. * vec2(st)) * 0.2)
+    step(0.8,
+      min(vec4(1.0), (
+        (1.0 - distance(fract(st.xy * z), vec2(0.5, 0.5)))
+        * (1.0 - sampleAvg * 0.2)
+        // * exp(sampleAvg * 0.1)
+      )) * vec4(1.0) * exp(snoise(10000. * vec2(st)) * 0.02)
+    )
     );
 
     // gl_FragColor = min(sample, grid);
-    gl_FragColor = sample * grid;
+    gl_FragColor = (1. - sample) * grid;
     // gl_FragColor = sample;
     // gl_FragColor = grid;
 }

@@ -62,14 +62,19 @@ vec4 quantize(vec4 v, int steps) {
   return min(vec4(1.0), (1. / float(steps)) * floor(v * float(steps) + 0.5));
 }
 
+float easeExp(float v, float c) {
+  return (exp(c * v) - 1.) / (exp(c) - 1.);
+}
+
 void main (void) {
     vec2 st = gl_FragCoord.xy / u_resolution.xy;
     float aspect = u_resolution.x / u_resolution.y;
-    st.x *= aspect;
+    // st.x *= aspect;
 
     float playhead = u_tex0CurrentFrame / u_tex0TotalFrames;
     float playheadWrap = sin(10. * PI * playhead * 0.1) + 1.0;
 
+    st = vec2(st.x, easeExp(st.y, 0.4));
     vec4 color = vec4(1.0);
     vec4 grid = color;
 
@@ -78,7 +83,11 @@ void main (void) {
     vec2 samplePos = vec2(floor(st.x * z) / z, floor(st.y * z) / z);
     vec4 sample = texture2D(u_tex0, samplePos);
     float sampleAvg = (sample.r + sample.g + sample.b) / 3.;
-    sample = vec4(step(0.4, sampleAvg));
+    sampleAvg = easeExp(sampleAvg, 3.);
+
+    // sample = vec4(sampleAvg);
+    sample = vec4(step(0.1, sampleAvg));
+
     // sample = exp(sample * 0.1);
     // sample = quantize(sample, 1);
     // sample = vec4((sample.r + sample.g + sample.b) / 3.);
@@ -92,18 +101,41 @@ void main (void) {
 
     // (1. - distance(fract(st.xy * z), vec2(0.5, 0.5)) * exp(sampleAvg * 0.9)) * color
 
+    // grid = (
+    // step(0.75,
+    //   min(vec4(1.0), (
+    //     (1.0 - distance(fract(st.xy * z), vec2(0.5, 0.5)))
+    //     * (1.0 - sampleAvg * 0.2)
+    //     // * exp(sampleAvg * 0.1)
+    //   )) * vec4(1.0) * exp(snoise(10000. * vec2(st)) * 0.02)
+    // )
+    // );
+
     grid = (
-    step(0.8,
-      min(vec4(1.0), (
-        (1.0 - distance(fract(st.xy * z), vec2(0.5, 0.5)))
-        * (1.0 - sampleAvg * 0.2)
-        // * exp(sampleAvg * 0.1)
-      )) * vec4(1.0) * exp(snoise(10000. * vec2(st)) * 0.02)
-    )
-    );
+      1.0 - step(
+        easeExp(sampleAvg, 1.1) * 2.,
+        distance(
+          fract(st.xy * z),
+          vec2(0.5, 0.5)
+        )
+      )
+    ) * vec4(1.0, 1., 0., 1.);
+
+    // float r = 0.1;
+
+    // grid = (
+    //   1.0 - smoothstep(
+    //     easeExp(sampleAvg, 1.) - r,
+    //     easeExp(sampleAvg, 1.) + r,
+    //     distance(
+    //       fract(st.xy * z),
+    //       vec2(0.5, 0.5)
+    //     )
+    //   )
+    // ) * vec4(1.0);
 
     // gl_FragColor = min(sample, grid);
-    gl_FragColor = (1. - sample) * grid;
+    gl_FragColor = sample * grid;
     // gl_FragColor = sample;
     // gl_FragColor = grid;
 }

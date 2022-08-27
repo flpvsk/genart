@@ -95,6 +95,10 @@ float fnComb(float phase) {
   );
 }
 
+float snNorm(float v1, float v2) {
+  return 0.5 * (snoise(vec2(v1, v2)) + 1.);
+}
+
 void main() {
     vec3 color = vec3(0.0);
     vec2 st = gl_FragCoord.xy/u_resolution;
@@ -140,7 +144,7 @@ void main() {
       vec3(
         (step(0.99, st.x) - step(0.99 + dotSize, st.x)) *
         (maxY - minY)
-      ),
+      ), //* vec3(snNorm(u_time, st.x), snNorm(u_time, st.y), snNorm(u_time, val)),
       0.5
     )
     - step(0.999, st.x) * vec3(1.) // right edge margin
@@ -150,7 +154,11 @@ void main() {
     color = texture2D(u_buffer2, st).rgb;
 #else
     // Main Buffer
-    color = texture2D(u_buffer3, st).rgb * 2.0 * vec3(0.8, 0.2, 0.3);
+    color = (
+      texture2D(u_buffer3, st).rgb * 2.0
+      * vec3(0.8, 0.2, 0.3)
+      // * vec3(1.0, 1.0, 1.0)
+    );
 #endif
     gl_FragColor = vec4(color, 1.0);
 }

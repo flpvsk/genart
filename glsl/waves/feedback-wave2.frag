@@ -104,8 +104,8 @@ void main() {
     vec2 st = gl_FragCoord.xy/u_resolution;
     float aspect = u_resolution.x/u_resolution.y;
     // st.x *= aspect;
-    float dotSize = 0.005;
-    float dotSmooth = 0.0025;
+    float dotSize = 0.003;
+    float dotSmooth = 0.0001;
     float phase = 0.5 * u_time;
 
 #ifdef BUFFER_0
@@ -117,7 +117,7 @@ void main() {
 
     float prePhase = texture2D(u_buffer1, vec2(0.)).r;
     float preVal = texture2D(u_buffer1, vec2(0.)).g;
-    float val = 0.1 * fnComb(phase * 2.) + 0.7;
+    float val = 0.1 * fnComb(phase * 4.) + 0.7;
     color = vec3(prePhase, preVal, val);
 
 #elif defined( BUFFER_1 )
@@ -151,7 +151,7 @@ void main() {
     float dotMax = 0.99 + dotSize * .5;
     color = // mix
     (
-      smoothstep(0.5 - 100. * dotSmooth, 0.5 + 100. * dotSmooth, prev) +
+      smoothstep(0.4 - 100. * dotSmooth, 0.6 + 100. * dotSmooth, prev) +
       // prev +
       vec3(
         (

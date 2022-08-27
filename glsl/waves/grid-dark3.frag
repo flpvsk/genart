@@ -3,7 +3,6 @@ precision highp float;
 #endif
 
 #include "./snoise.glsl"
-#include "./hard-mix.glsl"
 #define PI 3.14159265359
 
 uniform vec2 u_mouse;
@@ -80,14 +79,14 @@ void main (void) {
     vec4 grid = color;
 
     // gl_FragColor = min(vec4(color, 1.0), texture2D(u_tex0, st));
-    float z = 100.;
+    float z = 80.;
     vec2 samplePos = vec2(floor(st.x * z) / z, floor(st.y * z) / z);
     vec4 sample = texture2D(u_tex0, samplePos);
     float sampleAvg = (sample.r + sample.g + sample.b) / 3.;
     sampleAvg = easeExp(sampleAvg, 1.);
 
     // sample = vec4(sampleAvg);
-    // sample = vec4(step(0.1, sampleAvg));
+    sample = vec4(step(0.1, sampleAvg));
 
     // sample = exp(sample * 0.1);
     // sample = quantize(sample, 1);
@@ -114,7 +113,7 @@ void main (void) {
 
     grid = (
       1.0 - step(
-        easeExp(sampleAvg, 1.1) * 1.5,
+        easeExp(sampleAvg, 1.1) * 2.,
         distance(
           fract(st.xy * z),
           vec2(0.5, 0.5)
@@ -136,7 +135,7 @@ void main (void) {
     // ) * vec4(1.0);
 
     // gl_FragColor = min(sample, grid);
-    gl_FragColor = vec4(blendHardMix(sample.rgb, grid.rgb), 1.);
+    gl_FragColor = sample * grid;
     // gl_FragColor = sample;
     // gl_FragColor = grid;
 }

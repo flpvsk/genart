@@ -67,10 +67,18 @@ float easeExp(float v, float c) {
   return (exp(c * v) - 1.) / (exp(c) - 1.);
 }
 
+vec2 rotate(vec2 p) {
+  float phi = PI / 5.4;
+  return vec2(
+    cos(phi) * p.x - sin(phi) * p.y,
+    sin(phi) * p.x + cos(phi) * p.y
+  );
+}
+
 void main (void) {
     vec2 st = gl_FragCoord.xy / u_resolution.xy;
     float aspect = u_resolution.x / u_resolution.y;
-    // st.x *= aspect;
+    st.x *= aspect;
 
     float playhead = u_tex0CurrentFrame / u_tex0TotalFrames;
     float playheadWrap = sin(10. * PI * playhead * 0.1) + 1.0;
@@ -80,7 +88,7 @@ void main (void) {
     vec4 grid = color;
 
     // gl_FragColor = min(vec4(color, 1.0), texture2D(u_tex0, st));
-    float z = 100.;
+    float z = 180.;
     vec2 samplePos = vec2(floor(st.x * z) / z, floor(st.y * z) / z);
     vec4 sample = texture2D(u_tex0, samplePos);
     float sampleAvg = (sample.r + sample.g + sample.b) / 3.;
@@ -113,10 +121,10 @@ void main (void) {
     // );
 
     grid = (
-      1.0 - step(
-        easeExp(sampleAvg, 1.1) * 1.5,
+      step(
+        1. - sampleAvg,
         distance(
-          fract(st.xy * z),
+          fract(rotate(st.xy) * z),
           vec2(0.5, 0.5)
         )
       )

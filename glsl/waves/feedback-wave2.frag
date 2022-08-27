@@ -104,8 +104,8 @@ void main() {
     vec2 st = gl_FragCoord.xy/u_resolution;
     float aspect = u_resolution.x/u_resolution.y;
     // st.x *= aspect;
-    float dotSize = 0.003;
-    float dotSmooth = 0.01;
+    float dotSize = 0.005;
+    float dotSmooth = 0.0025;
     float phase = 0.5 * u_time;
 
 #ifdef BUFFER_0
@@ -117,7 +117,7 @@ void main() {
 
     float prePhase = texture2D(u_buffer1, vec2(0.)).r;
     float preVal = texture2D(u_buffer1, vec2(0.)).g;
-    float val = 0.1 * fnComb(phase) + 0.7;
+    float val = 0.1 * fnComb(phase * 2.) + 0.7;
     color = vec3(prePhase, preVal, val);
 
 #elif defined( BUFFER_1 )
@@ -134,18 +134,34 @@ void main() {
     float val = texture2D(u_buffer0, st).b;
     vec3 prev = texture2D(u_buffer3, vec2(st.x + 0.001, st.y)).rgb;
 
+    float valSmoothMin = max(0., val - dotSmooth);
+    float valSmoothMax = min(1., val + dotSmooth);
+    float preValSmoothMin = max(0., preVal - dotSmooth);
+    float preValSmoothMax = min(1., preVal + dotSmooth);
+
     float minY = min(
-      step(val, st.y - dotSize / 2.),
-      step(preVal, st.y - dotSize / 2.)
+      smoothstep(valSmoothMin, valSmoothMax, st.y - dotSize / 2.),
+      smoothstep(preValSmoothMin, preValSmoothMax, st.y - dotSize / 2.)
     );
-    float maxY = max(step(val, st.y), step(preVal, st.y));
-    color = mix(
-      smoothstep(0.09, 0.11, easeExp(prev, 1.6)),
+    float maxY = max(
+      smoothstep(valSmoothMin, valSmoothMax, st.y),
+      smoothstep(preValSmoothMin, preValSmoothMax, st.y)
+    );
+    float dotMin = 0.99 - dotSize * .5;
+    float dotMax = 0.99 + dotSize * .5;
+    color = // mix
+    (
+      smoothstep(0.5 - 100. * dotSmooth, 0.5 + 100. * dotSmooth, prev) +
+      // prev +
       vec3(
-        (step(0.99, st.x) - step(0.99 + dotSize, st.x)) *
-        (maxY - minY)
-      ), //* vec3(snNorm(u_time, st.x), snNorm(u_time, st.y), snNorm(u_time, val)),
-      0.5
+        (
+          smoothstep(dotMin, dotMin + dotSmooth, st.x) -
+          smoothstep(dotMax - dotSmooth, dotMax, st.x)
+        )
+        * (maxY - minY)
+      )
+      // , //* vec3(snNorm(u_time, st.x), snNorm(u_time, st.y), snNorm(u_time, val)),
+      // 0.04
     )
     - step(0.999, st.x) * vec3(1.) // right edge margin
     - step(st.x, 0.01) * vec3(1.); // left edge margin

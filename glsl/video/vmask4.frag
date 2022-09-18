@@ -85,7 +85,7 @@ void main (void) {
     vec4 sample = texture2D(u_tex0, st);
 
     float playhead = u_tex0CurrentFrame / u_tex0TotalFrames;
-    float playheadWrap = quadraticOut(0.5 * (sin(0.2 * PI * playhead) + 1.0));
+    float playheadWrap = quadraticOut(0.5 * (sin(2.2 * PI * playhead) + 1.0));
     float mouseX = u_mouse.x / u_resolution.x;
     float mouseY = u_mouse.y / u_resolution.y;
 
@@ -94,7 +94,7 @@ void main (void) {
 #ifdef BUFFER_0
     vec3 prev = texture2D(u_buffer1, vec2(st.x, st.y)).rgb;
 
-    float mask = step(mod(distance(0.5, 1. - st.x), distance(0.5, mouseX)), luma(sample.rgb) * 2.2 * clamp(3.0 - 4.2 * n1(0.5 - n1(playhead* 0.01, 0.) * st.y, 0.1 * playhead), 0.0, 4.0));
+    float mask = step(mod(distance(0.5, 1. - st.x), distance(0.5, mouseX)), luma(sample.rgb) * 2.2 * clamp(3.0 - 4.2 * n1(0.5 - n1(playhead* 0.1, 0.) * st.y, 0.6 * playhead), 0.0, 4.0));
     color = blendDifference(
       hueShift(sample.rgb, 0.07) * mask,
       hueShift(prev, 1. + 0.008 * mouseY) * (1. - mask)

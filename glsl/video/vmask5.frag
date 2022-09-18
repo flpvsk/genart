@@ -44,6 +44,10 @@ float fn2(float x) {
   return mod(x, 0.5);
 }
 
+float n1(float x, float y) {
+  return 0.5 * (snoise(vec2(x, y)) + 1.);
+}
+
 float plot(vec2 st, float pct, float w) {
   return (
     smoothstep(pct - w, pct, st.y) -
@@ -81,7 +85,7 @@ void main (void) {
     vec4 sample = texture2D(u_tex0, st);
 
     float playhead = u_tex0CurrentFrame / u_tex0TotalFrames;
-    float playheadWrap = quadraticOut(0.5 * (sin(0.008 * PI * u_tex0CurrentFrame) + 1.0));
+    float playheadWrap = quadraticOut(0.5 * (sin(10.2 * PI * playhead) + 1.0));
     float mouseX = u_mouse.x / u_resolution.x;
     float mouseY = u_mouse.y / u_resolution.y;
 
@@ -90,11 +94,18 @@ void main (void) {
 #ifdef BUFFER_0
     vec3 prev = texture2D(u_buffer1, vec2(st.x, st.y)).rgb;
 
-    float mask = step(mod(distance(0.5, 1. - st.x), distance(0.5, mouseX)), luma(sample.rgb) * 2.2 * clamp(3.0 - 3.2 * playheadWrap, .0, 4.0));
+    float mask = step(mix(st.x, 1. - st.x, playheadWrap), luma(sample.rgb) * 2.2 * clamp(3.0 - 4.2 * n1(0.5 - n1(playhead* 0.0001, 0.) * st.y, 0.001 * playhead), 0.0, 4.0));
     color = blendDifference(
-      hueShift(sample.rgb, 0.05) * mask,
-      hueShift(prev, 1. + 0.005 * mouseY) * (1. - mask)
+      hueShift(sample.rgb, 0.07) * mask,
+      hueShift(prev, 1. + 0.008 * mouseY) * (1. - mask)
     );
+    // color = blendScreen(
+    //   sample.rgb * 0.3 * step(0.3, distance(
+    //     vec2(0.5, 0.5),
+    //     0.5 + 0.5 * vec2(snoise(vec2(0., playhead)), snoise(vec2(1., playhead)))
+    //   )),
+    //   color
+    // );
     // color = hueShift(sample.rgb, 0.01) * mask + vibrance(hueShift(prev, playheadWrap * 0.1), 3.) * (1. - mask);
     // color = vec3(1. - luma(sample.rgb));
     // color *= step(aspect * 0.5, st.y);

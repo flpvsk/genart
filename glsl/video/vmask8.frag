@@ -13,6 +13,8 @@ precision highp float;
 #include "./lygia/color/vibrance.glsl"
 #include "./lygia/color/hueShift.glsl"
 #include "./lygia/color/blend.glsl"
+#include "./lygia/color/desaturate.glsl"
+#include "./lygia/color/brightnessContrast.glsl"
 #include "./lygia/animation/easing.glsl"
 
 // #define PI 3.14159265359
@@ -44,6 +46,10 @@ float fn2(float x) {
   return mod(x, 0.5);
 }
 
+float n1(float x, float y) {
+  return 0.5 * (snoise(vec2(x, y)) + 1.);
+}
+
 float plot(vec2 st, float pct, float w) {
   return (
     smoothstep(pct - w, pct, st.y) -
@@ -55,9 +61,8 @@ float put(float scale, float moveY, float v) {
   return scale * v + moveY;
 }
 
-vec4 quantize(vec4 v, int steps) {
-  // v = min(v * 1.7, vec4(1.0));
-  return min(vec4(1.0), (1. / float(steps)) * floor(v * float(steps) + 0.5));
+float quantize(float v, int steps) {
+  return min(1., (1. / float(steps)) * floor(v * float(steps) + 0.5));
 }
 
 float easeExp(float v, float c) {
@@ -81,7 +86,7 @@ void main (void) {
     vec4 sample = texture2D(u_tex0, st);
 
     float playhead = u_tex0CurrentFrame / u_tex0TotalFrames;
-    float playheadWrap = quadraticOut(0.5 * (sin(0.008 * PI * u_tex0CurrentFrame) + 1.0));
+    float playheadWrap = quadraticOut(0.5 * (sin(2.2 * PI * playhead) + 1.0));
     float mouseX = u_mouse.x / u_resolution.x;
     float mouseY = u_mouse.y / u_resolution.y;
 
@@ -89,16 +94,20 @@ void main (void) {
 
 #ifdef BUFFER_0
     vec3 prev = texture2D(u_buffer1, vec2(st.x, st.y)).rgb;
+    float plNoise = quantize(n1(playhead * 20., playhead * 100.), 8);
+    float plNoise2 = quantize(n1(playhead * 1., playhead * 4.), 18);
 
-    float mask = step(mod(distance(0.5, 1. - st.x), distance(0.5, mouseX)), luma(sample.rgb) * 2.2 * clamp(3.0 - 3.2 * playheadWrap, .0, 4.0));
-    color = blendDifference(
-      hueShift(sample.rgb, 0.05) * mask,
-      hueShift(prev, 1. + 0.005 * mouseY) * (1. - mask)
+    float mask = step(
+      mod(
+        distance(0.5, 1. - mod(st.x, fn1(st.y + plNoise))),
+        distance(0.5, 0.9 * plNoise)
+      ),
+      mix(luma(sample.rgb) * 1.2, 1. - luma(sample.rgb) * 8.2, plNoise)
     );
-    // color = hueShift(sample.rgb, 0.01) * mask + vibrance(hueShift(prev, playheadWrap * 0.1), 3.) * (1. - mask);
-    // color = vec3(1. - luma(sample.rgb));
-    // color *= step(aspect * 0.5, st.y);
-    // color *= step(st.y, aspect);
+    color = blendAdd(
+      hueShift(sample.rgb, 0.01) * mask,
+      hueShift(prev, 1. + 0.008 * plNoise) * (1. - mask)
+    );
 #elif defined( BUFFER_1 )
     color = texture2D(u_buffer0, st).rgb;
 #else

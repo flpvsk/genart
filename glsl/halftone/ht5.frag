@@ -7,6 +7,7 @@ precision highp float;
 #include "./lygia/space/ratio.glsl"
 #include "./lygia/color/blend.glsl"
 #include "./lygia/color/palette.glsl"
+#include "./lygia/color/hueShift.glsl"
 #include "./lygia/color/brightnessContrast.glsl"
 
 // #define PI 3.14159265359
@@ -25,6 +26,9 @@ uniform float       u_tex0Duration;
 uniform float       u_tex0CurrentFrame;
 uniform float       u_tex0TotalFrames;
 uniform float       u_tex0Fps;
+
+uniform sampler2D   u_buffer0;
+uniform sampler2D   u_buffer1;
 
 // takes phase, returns 0 <= y <= 1
 float fn1(float x) {
@@ -61,31 +65,65 @@ void main (void) {
     float aspect = u_resolution.x / u_resolution.y;
     // st.x *= aspect;
 
-    float gridSize = 1015.;
+    vec3 color = vec3(0.);
+#ifdef BUFFER_0
+    vec2 prevPos = vec2(st.x + 2. / u_resolution.x, st.y);
+    // prevPos = 1.001 * vec2(st.x, st.y);
+
+    vec3 prev = texture2D(u_buffer1, prevPos).rgb;
+
+    float gridSize = 105.;
     vec2 samplePos = vec2(
       floor(st.x * gridSize) / gridSize,
       floor(st.y * gridSize) / gridSize
     );
-    vec3 color = texture2D(u_tex0, st).rgb;
+    color = texture2D(u_tex0, st).rgb;
     vec3 sample = texture2D(u_tex0, samplePos).rgb;
-    color = vec3(luma(color));
-    vec3 colorBw = color;
-    color = brightnessContrast(color, 0.01, 2.1);
-    sample = vec3(luma(sample));
-    sample = brightnessContrast(sample, 0.01, 1.5);
-    color = vec3(luma(color));
-    color = blendHardMix(
-      color,
-      1. - sample,
-      0.85
+    color = brightnessContrast(color, 0.14, 0.9);
+    // color = vec3(luma(color));
+    // sample = vec3(luma(sample));
+    // sample = brightnessContrast(sample, 0.01, 1.5);
+    // color = blendHardMix(
+    //   color,
+    //   1. - sample,
+    //   0.85
+    // );
+    // color = brightnessContrast(color, 0.001, 1.1);
+    float mask = luma(color);
+    vec3 colorP = palette(
+      easeExp(
+        1.66 * (color.r * 1.9 + color.g * 0.3 + color.b * 0.1),
+        0.1
+      ),
+      vec3(0.2, 0.3, 0.01),
+      vec3(0.6, 0.1, 0.3),
+      vec3(0.4, 0.5, 0.3),
+      vec3(0.1, 0.8, 0.9)
     );
-    color = brightnessContrast(color, 0.001, 1.1);
-    color *= palette(
-      st.x,
-      vec3(0.5, 0.5, 0.5),
-      vec3(0.5, 0.5, 0.5),
-      vec3(0.5, 0.1, 0.1),
-      vec3(0.2, 0.1, 0.9)
-    );
+//     color =
+//       colorP * mask +
+//       float(luma(prev) < 0.3) * step(0.3, fract(st.y * 10.)) * brightnessContrast(prev, 0.0001, 1.1) * max(0., (0.9 - mask));
+//
+    color =
+      colorP * mask +
+      hueShift(brightnessContrast(prev, 0.00001, 1.6), 0.48) * mask +
+      step(0.6, fract((st.y * sin(PI * 0.25) + st.x * cos(PI * 0.25)) * 120.)) * brightnessContrast(color, 0.2, 1.1) * max(0.0, 0.6 - mask);
+
+    // vec3(0.1, 0.2, 0.1),
+    // vec3(0.4, 0.3, 0.3),
+    // vec3(0.4, 0.03, 0.3),
+    // vec3(0.1, 0.8, 0.9)
+    // color = palette(
+    //   st.x,
+    //   vec3(0.3, 0.3, 0.01),
+    //   vec3(0.6, 0.1, 0.3),
+    //   vec3(0.4, 0.5, 0.3),
+    //   vec3(0.1, 0.8, 0.9)
+    // );
+#elif defined( BUFFER_1 )
+    color = texture2D(u_buffer0, st).rgb;
+#else
+    color = texture2D(u_buffer0, st).rgb;
+#endif
     gl_FragColor = vec4(color, 1.);
 }

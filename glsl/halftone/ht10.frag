@@ -79,10 +79,12 @@ void main (void) {
       floor(st.y * gridSize) / gridSize
     );
     color = texture2D(u_tex0, st).rgb;
-    color += (1. - luma(color)) * 0.1 * snoise(st * 440.);
+    color += (1. - luma(color)) * 0.1 * snoise(st * 880.);
+    color += (1. - luma(color)) * 0.025 * snoise(st * 440.);
     color = quantize(color, 12);
-    color = brightnessContrast(color, 0.45, 2.2);
-    float mask = clamp(luma(color), 0.2, 0.8) - 0.2;
+    color = brightnessContrast(color, 0.75, 3.2);
+    float mask = clamp(luma(color), 0.05, 0.99);
+    mask = step(0.05, mask) * mask;
     mask *= 1.0;
     color = mask
       * vec3(80. / 255., 58. / 255., 0.);

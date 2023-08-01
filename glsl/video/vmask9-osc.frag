@@ -23,8 +23,6 @@ uniform vec2 u_mouse;
 uniform vec2 u_resolution;
 uniform float u_time;
 
-uniform float u_value;
-
 uniform sampler2D   u_tex0;
 #ifdef STREAMS_PREVS
 uniform sampler2D   u_tex0Prev[STREAMS_PREVS];

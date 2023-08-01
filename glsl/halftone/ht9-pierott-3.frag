@@ -10,6 +10,7 @@ precision highp float;
 #include "./lygia/color/hueShift.glsl"
 #include "./lygia/color/brightnessContrast.glsl"
 #include "./lygia/generative/snoise.glsl"
+#include "./lygia/generative/worley.glsl"
 
 // #define PI 3.14159265359
 
@@ -67,7 +68,6 @@ void main (void) {
     // st.x *= aspect;
 
     vec3 color = vec3(0.);
-#ifdef BUFFER_0
     vec2 prevPos = vec2(st.x + 2. / u_resolution.x, st.y);
     // prevPos = 1.001 * vec2(st.x, st.y);
 
@@ -78,40 +78,19 @@ void main (void) {
       floor(st.x * gridSize) / gridSize,
       floor(st.y * gridSize) / gridSize
     );
-    color = texture2D(u_tex0, st).rgb;
-    color += (1. - luma(color)) * 0.1 * snoise(st * 440.);
-    color = quantize(color, 12);
-    color = brightnessContrast(color, 0.45, 2.2);
-    float mask = clamp(luma(color), 0.2, 0.8) - 0.2;
+    color = texture2D(u_tex0, vec2(1. - st.x, st.y)).rgb;
+    float s = 480.;
+    vec3 c = color;
+    // c = brightnessContrast(color, 0.01, 2.6);
+    color += (1. - luma(c)) * 0.3 * snoise(st * s);
+    color += (1. - luma(c)) * 0.15 * snoise(st * s * 0.5);
+    color += (1. - luma(c)) * 0.075 * snoise(st * s * 0.25);
+    // color = quantize(color, 6);
+    // float mask = clamp(luma(color), 0.2, 0.92);
+    float mask = clamp(color.r, 0.2, 0.92);
+    // float mask = luma(color);
     mask *= 1.0;
     color = mask
       * vec3(80. / 255., 58. / 255., 0.);
-      // * (smoothstep(0.3, 0.5, fract((st.y * sin(PI * 0.25) + st.x * cos(PI * 0.25)) * 120.)) + vec3(0.2));
-
-//     color =
-//       colorP * mask +
-//       float(luma(prev) < 0.3) * step(0.3, fract(st.y * 10.)) * brightnessContrast(prev, 2.6, 1.1) * max(0., (0.9 - mask));
-//
-//     color =
-//       colorP * mask +
-//       hueShift(brightnessContrast(prev, 0.00001, 1.6), 0.48) * mask +
-//       step(0.3, fract((st.y * sin(PI * 0.25) + st.x * cos(PI * 0.25)) * 240.)) * brightnessContrast(color, 0.2, 1.1) * max(0.0, 0.6 - mask);
-//
-    // vec3(0.1, 0.2, 0.1),
-    // vec3(0.4, 0.3, 0.3),
-    // vec3(0.4, 0.03, 0.3),
-    // vec3(0.1, 0.8, 0.9)
-    // color = palette(
-    //   st.x,
-    //   vec3(0.3, 0.3, 0.01),
-    //   vec3(0.6, 0.1, 0.3),
-    //   vec3(0.4, 0.5, 0.3),
-    //   vec3(0.1, 0.8, 0.9)
-    // );
-#elif defined( BUFFER_1 )
-    color = texture2D(u_buffer0, st).rgb;
-#else
-    color = texture2D(u_buffer0, st).rgb;
-#endif
     gl_FragColor = vec4(color, 1.);
 }

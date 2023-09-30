@@ -1,15 +1,19 @@
+/*
+Demo script (supercollider)
 
-// Copyright Patricio Gonzalez Vivo, 2016 - http://patriciogonzalezvivo.com/
-// I am the sole copyright owner of this Work.
-//
-// You cannot host, display, distribute or share this Work in any form,
-// including physical and digital. You cannot use this Work in any
-// commercial or non-commercial product, website or project. You cannot
-// sell this Work and you cannot mint an NFTs of it.
-// I share this Work for educational purposes, and you can link to it,
-// through an URL, proper attribution and unmodified screenshot, as part
-// of your educational material. If these conditions are too restrictive
-// please contact me and we'll definitely work it out.
+(
+b = NetAddr.new("127.0.0.1", 8000);
+b.sendMsg("/u_dx", 0.001);
+b.sendMsg("/u_dy", 0.01);
+b.sendMsg("/u_dotsize", 0.9);
+b.sendMsg("/u_opacity", 0.999);
+b.sendMsg("/u_blend", 0.0);
+b.sendMsg("/u_h", 0.8);
+b.sendMsg("/u_s", 0.6);
+b.sendMsg("/u_l", 1.0);
+)
+*/
+
 
 #ifdef GL_ES
 precision highp float;
@@ -46,6 +50,13 @@ uniform float u_blend;
 uniform float u_noise_intensity;
 uniform float u_noise_density;
 
+uniform float u_shape_mask;
+uniform float u_fb_mask;
+
+uniform vec2 u_fb_displace;
+uniform vec2 u_fb_scale;
+uniform float u_fb_mix;
+
 uniform vec2        u_resolution;
 uniform vec2        u_mouse;
 uniform float       u_time;
@@ -60,17 +71,10 @@ float snoise_norm(vec2 st) {
 
 void main() {
     vec3 color = vec3(0.0);
-    // vec2 st = gl_FragCoord.xy / u_resolution;
-    // st = ratio(st, u_resolution);
 
     vec2 pixel = 1.0 / u_resolution.xy;
     vec2 st = gl_FragCoord.xy * pixel;
 
-    // vec2 st = gl_FragCoord.xy/u_resolution.xy;
-    // st = ratio(st, u_resolution);
-    // vec2 st = gl_FragCoord.xy/u_resolution;
-    // float aspect = u_resolution.x/u_resolution.y;
-    // st.x *= aspect;
     float dotSize = exponentialIn(u_dotsize);
     float dotSmooth = 0.2 * (u_dx * 0.01);
     float opacity = 1.;
@@ -83,26 +87,20 @@ void main() {
     vec3 val = preVal + vec3(u_dx_norm, u_dy_norm, 0.);
 
     color = vec3(
-      mod(val.x + 0.5, 1.0) - 0.5,
-      mod(val.y + 0.5, 1.0) - 0.5,
+      mod(val.x + 0.5, 1.) - 0.5,
+      mod(val.y + 0.5, 1.) - 0.5,
       0.
     );
 
 #elif defined( BUFFER_1 )
     vec2 pos = texture2D(u_buffer0, vec2(0.)).xy;
     vec2 prevPos = texture2D(u_buffer3, vec2(0.)).xy;
-    // bool didJump = (
-    //   (prevPos.x < 0. && pos.x > 0. && u_dx < 0. ) ||
-    //   (prevPos.x > 0. && pos.x < 0. && u_dx > 0. ) ||
-    //   (prevPos.y > 0. && pos.y < 0. && u_dy > 0. ) ||
-    //   (prevPos.y < 0. && pos.y > 0. && u_dy > 0. )
-    // );
     bool didJump = (
       abs(prevPos.x - pos.x) > 0.5 ||
       abs(prevPos.y - pos.y) > 0.5
     );
     prevPos = float(!didJump) * prevPos + float(didJump) * pos;
-    vec4 prev = clamp(texture2D(u_buffer2, st), vec4(0.), vec4(1.));
+    vec4 prev = clamp(texture2D(u_buffer2, st), vec4(-dotSize), vec4(1. + dotSize));
 
     float line = lineSDF(st, pos + vec2(0.5), prevPos + vec2(0.5))
      + (
@@ -147,6 +145,26 @@ void main() {
 
 #elif defined( BUFFER_2 )
     color = texture2D(u_buffer1, st).rgb;
+    vec3 fbColor = texture2D(
+      u_buffer1, u_fb_scale * st + u_fb_displace
+    ).rgb;
+
+    color = color * step(
+      distance(vec2(0.5, 0.5), st),
+      1. - 2. * u_shape_mask
+    );
+
+    color = mix(
+      color,
+      fbColor,
+      4. * u_fb_mix
+    );
+
+    color = color * step(
+      distance(vec2(0.5, 0.5), st),
+      1. - 2. * u_fb_mask
+    );
+
     opacity = u_opacity;
 
 #elif defined( BUFFER_3 )
@@ -163,10 +181,10 @@ void main() {
     // Main Buffer
     color = (
        vec3(0.2)
-       // texture2D(u_tex0, st).rgb,
-     + texture2D(u_buffer2, st).rgb
+      // texture2D(u_tex0, st).rgb,
+      + texture2D(u_buffer2, st).rgb
       // - vec3(digits(st,  bw(u_blend, 0.6, 0.9)))
-      // + vec3(digits(st + vec2(-0.7, 0.0), prevPos.x))
+      + vec3(digits(st + vec2(-0.7, -0.1), pos.y))
     );
 #endif
     gl_FragColor = vec4(color, opacity);

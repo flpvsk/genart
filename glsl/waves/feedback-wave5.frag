@@ -16,7 +16,7 @@ b.sendMsg("/u_l", 1.0);
 
 
 #ifdef GL_ES
-precision lowp float;
+precision mediump float;
 #endif
 
 #include "../halftone/lygia/draw/digits.glsl"

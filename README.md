@@ -1,5 +1,11 @@
 # genart
 
+### Run
+
+```bash
+npx canvas-sketch file.js
+```
+
 ### About
 
 Repository of experiments with creative coding and generative art.

@@ -28,6 +28,7 @@
     "three": "^0.99.0"
   },
   "devDependencies": {
+    "canvas-sketch-cli": "1.15.0",
     "canvas-sketch-util": "^1.8.0"
   }
 }

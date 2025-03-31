@@ -1,4 +1,5 @@
 const canvasSketch = require('canvas-sketch');
+const eases = require('eases')
 const random = require('canvas-sketch-util/random');
 const Color = require('canvas-sketch-util/color');
 const math = require('canvas-sketch-util/math');
@@ -8,7 +9,7 @@ const glsl = require('glslify');
 const palettes = require('nice-color-palettes');
 const memoize = require('memoize');
 
-// const seed = random.getRandomSeed();
+const seed = random.getRandomSeed();
 // const seed = '88356';
 // const seed = '69211';
 // const seed = '300809';
@@ -16,7 +17,7 @@ const memoize = require('memoize');
 // const seed = '323879';
 // const seed = '272310';
 // const seed = '918835';
-const seed = '32361';
+// const seed = '32361';
 // const seed = '182141';
 random.setSeed(seed);
 console.log('seed', seed);
@@ -337,29 +338,29 @@ function calculateModelProjection(context, opts) {
 
 const viewProjectionCache = new Map();
 function calculateViewProjection(context, { time }) {
-  const roundTo = 50;
-  const timeRounded = Math.round(time * roundTo) / roundTo;
+  const roundTo = 80;
+  const timeRounded = eases.expoInOut(Math.round(time * roundTo) / roundTo);
   if (viewProjectionCache.has(timeRounded)) {
     return viewProjectionCache.get(timeRounded);
   }
 
   let rad = 10 * Math.PI * timeRounded;
 
-  if (rad > 0.5 * Math.PI && rad < 2.5 * Math.PI) {
-    rad = 0.5 * Math.PI;
-  }
+  // if (rad > 0.5 * Math.PI && rad < 2.5 * Math.PI) {
+  //   rad = 0.5 * Math.PI;
+  // }
 
-  if (rad > 3 * Math.PI && rad < 5 * Math.PI) {
-    rad = 3 * Math.PI;
-  }
+  // if (rad > 3 * Math.PI && rad < 5 * Math.PI) {
+  //   rad = 3 * Math.PI;
+  // }
 
-  if (rad > 5.5 * Math.PI && rad < 7.5 * Math.PI) {
-    rad = 5.5 * Math.PI;
-  }
+  // if (rad > 5.5 * Math.PI && rad < 7.5 * Math.PI) {
+  //   rad = 5.5 * Math.PI;
+  // }
 
-  if (rad > 8 * Math.PI && rad < 10 * Math.PI) {
-    rad = 8 * Math.PI;
-  }
+  // if (rad > 8 * Math.PI && rad < 10 * Math.PI) {
+  //   rad = 8 * Math.PI;
+  // }
 
   const view =  mat4.lookAt(
     [],

@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "canvas-sketch-cli": "1.15.0",
-    "canvas-sketch-util": "^1.8.0"
+    "canvas-sketch-util": "^1.8.0",
+    "worley-noise": "^2.0.1"
   }
 }
